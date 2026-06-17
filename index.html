@@ -199,8 +199,8 @@
 </div>
 
 <script>
-const NAVER = { clientId:"", clientSecret:"" };
-const DEMO = !NAVER.clientId;
+const PROXY = "https://script.google.com/macros/s/AKfycby9zOfT4dJcwtyBghOkoZggAWuJM2cNGIJNzTO9fxRQBxGWTZV9LYxLJvXHe5fzoeot/exec";
+const DEMO = !PROXY;
 
 const state = { keywords:[], pool:[], picked:[], target:{name:"",area:""} };
 
@@ -246,22 +246,26 @@ const DEMO_POOL=[
 ];
 function scorePool(pool){
   const maxB=Math.max(...pool.map(p=>p.blogHits),1), maxR=Math.max(...pool.map(p=>p.reviews),1);
+  const hasReviews=pool.some(p=>p.reviews>0);
   pool.forEach(p=>{
     const b=p.blogHits/maxB, r=p.reviews/maxR, c=p.channels.length/5;
-    p.score=Math.round((b*0.45 + r*0.30 + c*0.25)*100);
+    // 리뷰 데이터가 없으면(실데이터) 블로그 노출 중심으로 점수 재배분
+    p.score = hasReviews
+      ? Math.round((b*0.45 + r*0.30 + c*0.25)*100)
+      : Math.round((b*0.75 + c*0.25)*100);
   });
   return pool.sort((a,b)=>b.score-a.score);
 }
 
-/* ---------- real Naver fetch (active once keys set) ---------- */
+/* ---------- real Naver fetch via GAS proxy ---------- */
 async function naverLocal(query){
-  const url="https://openapi.naver.com/v1/search/local.json?display=5&query="+encodeURIComponent(query);
-  const r=await fetch(url,{headers:{"X-Naver-Client-Id":NAVER.clientId,"X-Naver-Client-Secret":NAVER.clientSecret}});
+  const url=PROXY+"?type=local&query="+encodeURIComponent(query);
+  const r=await fetch(url);
   const j=await r.json(); return j.items||[];
 }
 async function naverBlogCount(query){
-  const url="https://openapi.naver.com/v1/search/blog.json?display=1&query="+encodeURIComponent(query);
-  const r=await fetch(url,{headers:{"X-Naver-Client-Id":NAVER.clientId,"X-Naver-Client-Secret":NAVER.clientSecret}});
+  const url=PROXY+"?type=blog&query="+encodeURIComponent(query);
+  const r=await fetch(url);
   const j=await r.json(); return j.total||0;
 }
 async function collectReal(){
