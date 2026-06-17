@@ -145,12 +145,12 @@
     <h2><span class="step-no">1</span>영업 대상 + 핵심 키워드</h2>
     <p class="sub">우리가 따려는 병원과, 그 병원이 가장 받고 싶어 하는 환자가 검색할 키워드를 넣습니다. 키워드가 곧 경쟁 후보를 끌어오는 그물입니다.</p>
     <div class="row">
-      <div><label class="fld">영업 대상 병원명</label><input type="text" id="targetName" placeholder="예: 디어한의원"></div>
-      <div><label class="fld">지역 / 진료과</label><input type="text" id="targetArea" placeholder="예: 서초 한의원"></div>
+      <div><label class="fld">영업 대상 병원명</label><input type="text" id="targetName" placeholder="예: ○○한의원"></div>
+      <div><label class="fld">지역 / 진료과</label><input type="text" id="targetArea" placeholder="예: 강남 한의원"></div>
     </div>
     <div>
       <label class="fld">핵심 키워드 (엔터로 추가 · 여러 개일수록 후보가 넓어짐)</label>
-      <input type="text" id="kwInput" placeholder="예: 서초 한의원 다이어트  ↵">
+      <input type="text" id="kwInput" placeholder="예: 강남 한의원 다이어트  ↵">
       <div class="kw-chips" id="kwChips"></div>
     </div>
     <div style="margin-top:18px; display:flex; gap:10px; flex-wrap:wrap;">
@@ -227,22 +227,22 @@ function renderChips(){
 
 /* ---------- demo data ---------- */
 function demoFill(){
-  $("#targetName").value="디어한의원";
-  $("#targetArea").value="서초 한의원";
-  state.keywords=["서초 한의원 다이어트","서초 여성 한의원","서초동 한약","교대역 한의원"];
+  $("#targetName").value="가나한의원";
+  $("#targetArea").value="강남 한의원";
+  state.keywords=["강남 한의원 다이어트","강남 여성 한의원","역삼동 한약","선릉역 한의원"];
   renderChips();
 }
 $("#demoBtn").onclick=demoFill;
 
 /* ---------- candidate scoring ---------- */
 const DEMO_POOL=[
-  {name:"본스한의원 서초점", cat:"한의원", addr:"서초구 서초대로", blogHits:38, reviews:210, channels:["home","blog","insta","place"], score:0},
-  {name:"미소진한의원", cat:"한의원", addr:"서초구 강남대로", blogHits:24, reviews:156, channels:["home","blog","youtube","place"], score:0},
-  {name:"청담예한의원 교대", cat:"한의원", addr:"서초구 서초중앙로", blogHits:19, reviews:98, channels:["home","blog","place"], score:0},
-  {name:"하루한의원", cat:"한의원", addr:"서초구 반포대로", blogHits:12, reviews:74, channels:["home","place"], score:0},
-  {name:"林한의원", cat:"한의원", addr:"서초구 사임당로", blogHits:9, reviews:61, channels:["blog","place"], score:0},
-  {name:"바른몸한의원", cat:"한의원", addr:"서초구 방배로", blogHits:6, reviews:45, channels:["home","place"], score:0},
-  {name:"가온한의원", cat:"한의원", addr:"서초구 효령로", blogHits:4, reviews:33, channels:["place"], score:0},
+  {name:"가람한의원", cat:"한의원", addr:"강남구 테헤란로", blogHits:38, reviews:210, channels:["home","blog","insta","place"], score:0},
+  {name:"나래한의원", cat:"한의원", addr:"강남구 강남대로", blogHits:24, reviews:156, channels:["home","blog","youtube","place"], score:0},
+  {name:"다온한의원", cat:"한의원", addr:"강남구 봉은사로", blogHits:19, reviews:98, channels:["home","blog","place"], score:0},
+  {name:"라온한의원", cat:"한의원", addr:"강남구 학동로", blogHits:12, reviews:74, channels:["home","place"], score:0},
+  {name:"마루한의원", cat:"한의원", addr:"강남구 도산대로", blogHits:9, reviews:61, channels:["blog","place"], score:0},
+  {name:"바다한의원", cat:"한의원", addr:"강남구 선릉로", blogHits:6, reviews:45, channels:["home","place"], score:0},
+  {name:"사랑한의원", cat:"한의원", addr:"강남구 역삼로", blogHits:4, reviews:33, channels:["place"], score:0},
 ];
 function scorePool(pool){
   const maxB=Math.max(...pool.map(p=>p.blogHits),1), maxR=Math.max(...pool.map(p=>p.reviews),1);
