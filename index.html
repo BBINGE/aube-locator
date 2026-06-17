@@ -11,6 +11,7 @@
     --ink:#0E1E3A; --paper:#F7F8FA; --line:#E2E6EC; --muted:#6B7686;
     --good:#19A06B; --good-bg:#E6F6EF; --warn:#C9871A; --warn-bg:#FBF1DE;
     --bad:#D24B4B; --bad-bg:#FBEAEA; --none:#9AA3B0; --none-bg:#EEF0F3;
+    --place:#2DB400; --blog:#1EC800; --web:#3D5AFE;
     --white:#fff;
   }
   *{box-sizing:border-box;}
@@ -37,14 +38,14 @@
   input[type=text], textarea{width:100%; border:1px solid var(--line); border-radius:9px; padding:10px 12px;
     font-size:13.5px; font-family:inherit; color:var(--ink); background:#fff; transition:border .15s;}
   input[type=text]:focus, textarea:focus{outline:none; border-color:var(--navy-2); box-shadow:0 0 0 3px rgba(27,58,107,.08);}
-  textarea{resize:vertical; min-height:54px; line-height:1.5;}
+  textarea{resize:vertical; min-height:48px; line-height:1.5;}
   .row{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;}
-  .row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;}
-  @media(max-width:680px){.row,.row3{grid-template-columns:1fr;}}
+  @media(max-width:680px){.row{grid-template-columns:1fr;}}
 
   .btn{border:none; border-radius:9px; padding:11px 18px; font-size:13.5px; font-weight:700;
     font-family:inherit; cursor:pointer; transition:transform .08s, filter .15s; display:inline-flex; align-items:center; gap:7px;}
   .btn:active{transform:scale(.98);}
+  .btn:disabled{opacity:.6; cursor:wait;}
   .btn-primary{background:var(--navy); color:#fff;}
   .btn-primary:hover{filter:brightness(1.12);}
   .btn-mint{background:var(--mint); color:var(--navy);}
@@ -56,23 +57,26 @@
   .kw-chips{display:flex; flex-wrap:wrap; gap:7px; margin-top:9px;}
   .chip{background:var(--paper); border:1px solid var(--line); border-radius:18px; padding:5px 12px 5px 13px;
     font-size:12px; display:flex; align-items:center; gap:7px; color:var(--ink);}
-  .chip b{font-weight:600;}
   .chip span{cursor:pointer; color:var(--none); font-weight:700; font-size:13px; line-height:1;}
   .chip span:hover{color:var(--bad);}
 
   .notice{font-size:12px; padding:10px 13px; border-radius:9px; display:flex; gap:8px; align-items:flex-start; line-height:1.5;}
-  .notice-info{background:#EAF2FF; color:#234C8C; border:1px solid #CFE0FB;}
   .notice-key{background:var(--warn-bg); color:#8A5E12; border:1px solid #F0DCB0;}
 
-  /* candidate pool */
-  .pool{margin-top:4px;}
-  .cand{display:grid; grid-template-columns:30px 1fr auto; gap:12px; align-items:center;
-    padding:13px 14px; border:1px solid var(--line); border-radius:11px; margin-bottom:9px; background:#fff; transition:border .15s, background .15s;}
-  .cand.picked{border-color:var(--mint); background:var(--good-bg);}
+  .cand{border:1px solid var(--line); border-radius:11px; margin-bottom:9px; background:#fff; transition:border .15s; overflow:hidden;}
+  .cand.picked{border-color:var(--mint);}
+  .cand-top{display:grid; grid-template-columns:30px 1fr auto; gap:12px; align-items:center; padding:13px 14px;}
+  .cand.picked .cand-top{background:var(--good-bg);}
   .cand .rank{font-size:15px; font-weight:800; color:var(--navy-2); text-align:center;}
   .cand .nm{font-size:14px; font-weight:700; letter-spacing:-0.2px;}
-  .cand .meta{font-size:11.5px; color:var(--muted); margin-top:3px; display:flex; flex-wrap:wrap; gap:4px 12px;}
-  .cand .meta i{font-style:normal;}
+  .cand .meta{font-size:11.5px; color:var(--muted); margin-top:3px;}
+  .occ{display:flex; flex-wrap:wrap; gap:5px; margin-top:7px;}
+  .occ-tag{font-size:10.5px; padding:2px 8px; border-radius:20px; font-weight:600;}
+  .occ-place{background:#E8F6E0; color:#1a7a00;}
+  .occ-blog{background:#EAF7E4; color:#178000;}
+  .occ-web{background:#EAEEFF; color:#2A3Fb0;}
+  .kwhit{display:inline-block; font-size:10px; color:var(--muted); background:var(--paper); border:1px solid var(--line);
+    border-radius:5px; padding:1px 6px; margin:2px 3px 0 0;}
   .score{display:flex; align-items:center; gap:11px;}
   .scorebar{width:74px; height:7px; border-radius:4px; background:var(--none-bg); overflow:hidden;}
   .scorebar i{display:block; height:100%; background:var(--mint); border-radius:4px;}
@@ -82,48 +86,37 @@
   .pickbtn:hover{border-color:var(--mint-deep); color:var(--mint-deep);}
   .cand.picked .pickbtn{background:var(--mint); border-color:var(--mint); color:#fff;}
 
-  /* compare table */
-  .cmp-wrap{overflow-x:auto;}
-  table.cmp{width:100%; border-collapse:separate; border-spacing:0; font-size:12.5px; min-width:560px;}
-  table.cmp th{padding:11px 10px; text-align:center; font-weight:700; font-size:12px; border-bottom:2px solid var(--line); vertical-align:bottom;}
-  table.cmp th.axis{text-align:left; width:170px; color:var(--muted);}
-  table.cmp th.us{background:var(--navy); color:#fff; border-radius:9px 9px 0 0;}
-  table.cmp th.us .role{font-size:10.5px; color:var(--mint); font-weight:600;}
-  table.cmp th.cp .role{font-size:10.5px; color:var(--muted); font-weight:500; display:block; margin-top:1px;}
-  table.cmp td{padding:8px; text-align:center; border-bottom:1px solid var(--line);}
-  table.cmp td.axis{text-align:left;}
-  table.cmp td.axis .ax-n{font-weight:700; color:var(--ink);}
-  table.cmp td.axis .ax-s{font-size:10.5px; color:var(--none); margin-top:1px;}
-  .src{font-size:10px; font-weight:700; padding:1px 5px; border-radius:5px; margin-right:5px; vertical-align:1px;}
-  .src-auto{background:#E7F0FF; color:#2B5CA8;}
-  .src-semi{background:#FFF3DE; color:#9C6E14;}
-  .src-hand{background:#F0ECFB; color:#6A4DB0;}
-  .cell{border-radius:8px; padding:7px 5px; line-height:1.35;}
-  .c-good{background:var(--good-bg); color:#127a52;}
-  .c-warn{background:var(--warn-bg); color:#8a5e12;}
-  .c-bad{background:var(--bad-bg); color:#a83232;}
-  .c-none{background:var(--none-bg); color:var(--none);}
-  .cell .v{font-size:12.5px; font-weight:700;}
-  .cell .t{font-size:10.5px; margin-top:1px;}
-
-  .verdict{background:var(--navy); color:#fff; border-radius:14px; padding:20px 22px; margin-top:18px;}
-  .verdict h3{font-size:13px; margin:0 0 10px; color:var(--mint); font-weight:700; display:flex; align-items:center; gap:7px;}
-  .verdict p{margin:0 0 9px; font-size:13.5px; line-height:1.7; color:#E8EEF7;}
-  .verdict .fact{color:#fff; font-weight:600;}
-  .verdict .danger{color:#FF9B9B; font-weight:600;}
-  .verdict .chance{color:var(--mint); font-weight:600;}
-  .verdict .tag{display:inline-block; font-size:10.5px; background:rgba(255,255,255,.1); padding:2px 8px; border-radius:5px; margin-right:6px; color:#CFE0F5;}
-
-  .legend{display:flex; flex-wrap:wrap; gap:13px; font-size:11px; color:var(--muted); margin-bottom:14px;}
-  .legend span{display:flex; align-items:center; gap:5px;}
-  .dot{width:9px; height:9px; border-radius:50%;}
-
-  .hidden{display:none;}
-  .empty{text-align:center; padding:34px 20px; color:var(--none); font-size:13px;}
-  .empty i{font-size:30px; display:block; margin-bottom:8px; opacity:.5;}
   .toolbar{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px;}
   .toolbar .spacer{flex:1;}
   .count-pill{font-size:11.5px; color:var(--muted); background:var(--paper); border:1px solid var(--line); padding:5px 11px; border-radius:18px;}
+
+  .sheet-block{margin-bottom:22px;}
+  .sheet-h{font-size:13px; font-weight:700; color:var(--navy); margin:0 0 4px; display:flex; align-items:center; gap:7px;}
+  .auto-pill{font-size:9.5px; font-weight:700; color:var(--mint-deep); background:var(--good-bg); padding:1px 7px; border-radius:5px;}
+  .find-pill{font-size:9.5px; font-weight:700; color:#6A4DB0; background:#F0ECFB; padding:1px 7px; border-radius:5px;}
+  .occ-grid{overflow-x:auto;}
+  table.occ-t{width:100%; border-collapse:separate; border-spacing:0; font-size:12px; min-width:520px;}
+  table.occ-t th{padding:9px 8px; text-align:center; font-weight:700; font-size:11.5px; border-bottom:2px solid var(--line); color:var(--muted);}
+  table.occ-t th.kw{text-align:left; width:170px;}
+  table.occ-t th.us{background:var(--navy); color:#fff; border-radius:8px 8px 0 0;}
+  table.occ-t td{padding:7px 6px; text-align:center; border-bottom:1px solid var(--line);}
+  table.occ-t td.kw{text-align:left; font-weight:600;}
+  .ocell{display:inline-flex; gap:3px; flex-wrap:wrap; justify-content:center;}
+  .od{width:8px; height:8px; border-radius:2px; display:inline-block;}
+  .find-box{width:100%;}
+  .verdict{background:var(--navy); color:#fff; border-radius:14px; padding:18px 20px;}
+  .verdict h3{font-size:12.5px; margin:0 0 8px; color:var(--mint); font-weight:700;}
+  .verdict textarea{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.18); color:#fff; font-size:13px; min-height:120px;}
+  .verdict textarea:focus{border-color:var(--mint); box-shadow:none;}
+
+  .hidden{display:none;}
+  .empty{text-align:center; padding:34px 20px; color:var(--none); font-size:13px;}
+  .legend2{display:flex; flex-wrap:wrap; gap:12px; font-size:10.5px; color:var(--muted); margin:8px 0 2px;}
+  .legend2 span{display:flex; align-items:center; gap:4px;}
+  @media print{
+    .hbadge,.toolbar,.btn,.notice-key,#step1,#step2{display:none!important;}
+    .card{border:none; padding:0;} body{background:#fff;}
+  }
 </style>
 </head>
 <body>
@@ -132,66 +125,77 @@
     <div class="logo">A</div>
     <div class="htxt">
       <h1>AUBE 경쟁 입지 리서치 압축기</h1>
-      <p>네이버 기준 · 경쟁 후보 자동 수집 → 사람이 검수 → 비교 한 장</p>
+      <p>키워드 1페이지를 누가 점유하나 → 진짜 경쟁사 검수 → 미팅용 결과지</p>
     </div>
-    <div class="hbadge" id="modeBadge">데모 모드</div>
+    <div class="hbadge">실데이터 모드</div>
   </div>
 </header>
 
 <div class="wrap">
 
-  <!-- STEP 1 -->
-  <div class="card">
+  <div class="card" id="step1">
     <h2><span class="step-no">1</span>영업 대상 + 핵심 키워드</h2>
-    <p class="sub">우리가 따려는 병원과, 그 병원이 가장 받고 싶어 하는 환자가 검색할 키워드를 넣습니다. 키워드가 곧 경쟁 후보를 끌어오는 그물입니다.</p>
+    <p class="sub">키워드는 "그 병원의 환자가 검색할 말"입니다. 2~3개 넣으면, 각 키워드의 검색 1페이지를 누가(플레이스·블로그·웹) 점유하는지 훑어 경쟁 후보를 모읍니다.</p>
     <div class="row">
-      <div><label class="fld">영업 대상 병원명</label><input type="text" id="targetName" placeholder="예: ○○한의원"></div>
-      <div><label class="fld">지역 / 진료과</label><input type="text" id="targetArea" placeholder="예: 강남 한의원"></div>
+      <div><label class="fld">영업 대상 병원명</label><input type="text" id="targetName" placeholder="예: ○○요양병원"></div>
+      <div><label class="fld">지역 / 진료과 (메모용)</label><input type="text" id="targetArea" placeholder="예: 은평구 요양병원"></div>
     </div>
     <div>
-      <label class="fld">핵심 키워드 (엔터로 추가 · 여러 개일수록 후보가 넓어짐)</label>
-      <input type="text" id="kwInput" placeholder="예: 강남 한의원 다이어트  ↵">
+      <label class="fld">핵심 키워드 (엔터로 추가 · 2~3개 권장)</label>
+      <input type="text" id="kwInput" placeholder="예: 은평구 요양병원  ↵">
       <div class="kw-chips" id="kwChips"></div>
     </div>
-    <div style="margin-top:18px; display:flex; gap:10px; flex-wrap:wrap;">
-      <button class="btn btn-primary" id="runBtn">경쟁 후보 수집</button>
-      <button class="btn btn-ghost btn-sm" id="demoBtn">데모 데이터로 채우기</button>
+    <div style="margin-top:18px;">
+      <button class="btn btn-primary" id="runBtn">1페이지 점유 분석</button>
     </div>
-    <div class="notice notice-key" id="keyNotice" style="margin-top:14px;">
-      <span>🔑</span>
-      <div>지금은 <b>데모 모드</b>입니다. 실데이터를 받으려면 네이버 개발자 등록 후 발급한 Client ID/Secret이 필요합니다(카드·결제 불필요). 키를 꽂으면 같은 화면에 진짜 검색 결과가 들어옵니다.</div>
+    <div class="notice notice-key" style="margin-top:14px;">
+      <span>ℹ️</span>
+      <div>네이버 검색 API가 주는 건 <b>플레이스·블로그·웹문서</b> 노출입니다. 리뷰 수, SNS·카페 채널 보유, 광고(파워링크) 집행은 API로 안 나오므로 — 경쟁사를 추린 뒤 <b>플레이스 상세를 직접 확인</b>해 결과지에 적습니다.</div>
     </div>
   </div>
 
-  <!-- STEP 2 -->
   <div class="card hidden" id="step2">
     <h2><span class="step-no">2</span>경쟁 후보 검수 — 진짜 경쟁사 2~3곳 확정</h2>
-    <p class="sub">점수는 노출 흔적·채널·리뷰를 합산한 <b>후보 추천치</b>일 뿐입니다. 진짜 경쟁사는 원장님의 타겟 환자가 누구냐를 아는 사람만 압니다. 5~10분 검수해서 직접 고르세요.</p>
+    <p class="sub">점수 = <b>여러 키워드에 걸친 노출 빈도 + 순위 가중치</b>. 여러 키워드에서 자주·위에 뜰수록 높습니다. 점수는 추천일 뿐, 진짜 경쟁사는 직접 고르세요.</p>
     <div class="toolbar">
       <span class="count-pill" id="poolCount">후보 0곳</span>
       <span class="count-pill" id="pickCount" style="border-color:var(--mint); color:var(--mint-deep);">선택 0곳</span>
       <div class="spacer"></div>
-      <button class="btn btn-ghost btn-sm" id="researchBtn">선택 병원 조사 링크 열기</button>
-      <button class="btn btn-mint btn-sm" id="compareBtn">비교표 생성 →</button>
+      <button class="btn btn-ghost btn-sm" id="researchBtn">선택 병원 플레이스 열기</button>
+      <button class="btn btn-mint btn-sm" id="sheetBtn">결과지 만들기 →</button>
     </div>
-    <div class="pool" id="pool"></div>
+    <div id="pool"></div>
   </div>
 
-  <!-- STEP 3 -->
   <div class="card hidden" id="step3">
-    <h2><span class="step-no">3</span>입지 비교 — 우리 vs 경쟁사</h2>
-    <p class="sub">1층은 매체 현황(사실), 2층은 브랜딩 진단(해석). 사실로 겁을 주고, 해석으로 계약을 받습니다.</p>
-    <div class="legend">
-      <span><span class="src src-auto">●자동</span> API 수집</span>
-      <span><span class="src src-semi">◐관측</span> 검색 클릭 확인</span>
-      <span><span class="src src-hand">✎판단</span> 전문가 입력</span>
+    <h2><span class="step-no">3</span>미팅용 결과지 <span style="font-size:11px; font-weight:500; color:var(--muted);">(자동 초안 + 직접 다듬기)</span></h2>
+
+    <div class="sheet-block">
+      <div class="sheet-h">시장 노출 점유 현황 <span class="auto-pill">자동</span></div>
+      <p class="sub" style="margin:0 0 8px;">각 키워드 1페이지에서 누가 어떤 형태로 노출되는지. ■칸이 채워질수록 그 키워드를 장악.</p>
+      <div class="legend2">
+        <span><i class="od" style="background:var(--place)"></i>플레이스</span>
+        <span><i class="od" style="background:var(--blog)"></i>블로그</span>
+        <span><i class="od" style="background:var(--web)"></i>웹/홈피</span>
+      </div>
+      <div class="occ-grid"><table class="occ-t" id="occTable"></table></div>
     </div>
-    <div class="cmp-wrap">
-      <table class="cmp" id="cmpTable"></table>
+
+    <div class="sheet-block">
+      <div class="sheet-h">발견 (FIND) — 실제로 들어가 본 것 <span class="find-pill">직접 입력</span></div>
+      <p class="sub" style="margin:0 0 8px;">플레이스 상세에서 확인한 채널·광고·리뷰·강점을 병원별로 적습니다. 미팅에서 "제가 직접 봤는데요"의 근거.</p>
+      <div id="findBoxes" style="display:flex; flex-direction:column; gap:10px;"></div>
     </div>
-    <div class="verdict" id="verdict"></div>
-    <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
-      <button class="btn btn-primary btn-sm" onclick="window.print()">리포트 인쇄 / PDF</button>
+
+    <div class="sheet-block">
+      <div class="verdict">
+        <h3>📋 진단 & 제안 (광고주에게 보여줄 결론)</h3>
+        <textarea id="verdictText" placeholder="자동 초안이 채워집니다. 미팅 직전 본인 언어로 다듬으세요."></textarea>
+      </div>
+    </div>
+
+    <div class="toolbar" style="margin-top:4px;">
+      <button class="btn btn-primary btn-sm" onclick="window.print()">결과지 인쇄 / PDF</button>
       <button class="btn btn-ghost btn-sm" id="resetBtn">처음부터</button>
     </div>
   </div>
@@ -200,19 +204,16 @@
 
 <script>
 const PROXY = "https://script.google.com/macros/s/AKfycby9zOfT4dJcwtyBghOkoZggAWuJM2cNGIJNzTO9fxRQBxGWTZV9LYxLJvXHe5fzoeot/exec";
-const DEMO = !PROXY;
 
-const state = { keywords:[], pool:[], picked:[], target:{name:"",area:""} };
-
+const state = { keywords:[], pool:[], picked:[], target:{name:"",area:""}, kwResults:{} };
 const $ = s => document.querySelector(s);
 const el = (t,c,h)=>{const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e;};
 
-/* ---------- STEP 1: keyword chips ---------- */
 const kwInput=$("#kwInput"), kwChips=$("#kwChips");
 kwInput.addEventListener("keydown",e=>{
   if(e.key==="Enter" && kwInput.value.trim()){
     const v=kwInput.value.trim();
-    if(!state.keywords.includes(v)){ state.keywords.push(v); renderChips(); }
+    if(!state.keywords.includes(v) && state.keywords.length<5){ state.keywords.push(v); renderChips(); }
     kwInput.value="";
   }
 });
@@ -225,98 +226,120 @@ function renderChips(){
   });
 }
 
-/* ---------- demo data ---------- */
-function demoFill(){
-  $("#targetName").value="가나한의원";
-  $("#targetArea").value="강남 한의원";
-  state.keywords=["강남 한의원 다이어트","강남 여성 한의원","역삼동 한약","선릉역 한의원"];
-  renderChips();
+async function fetchType(type, query, display){
+  const url=PROXY+"?type="+type+"&query="+encodeURIComponent(query)+(display?"&display="+display:"");
+  const r=await fetch(url); return await r.json();
 }
-$("#demoBtn").onclick=demoFill;
+function clean(s){ return (s||"").replace(/<[^>]+>/g,"").trim(); }
+function bare(s){ return clean(s).replace(/\s/g,""); }
 
-/* ---------- candidate scoring ---------- */
-const DEMO_POOL=[
-  {name:"가람한의원", cat:"한의원", addr:"강남구 테헤란로", blogHits:38, reviews:210, channels:["home","blog","insta","place"], score:0},
-  {name:"나래한의원", cat:"한의원", addr:"강남구 강남대로", blogHits:24, reviews:156, channels:["home","blog","youtube","place"], score:0},
-  {name:"다온한의원", cat:"한의원", addr:"강남구 봉은사로", blogHits:19, reviews:98, channels:["home","blog","place"], score:0},
-  {name:"라온한의원", cat:"한의원", addr:"강남구 학동로", blogHits:12, reviews:74, channels:["home","place"], score:0},
-  {name:"마루한의원", cat:"한의원", addr:"강남구 도산대로", blogHits:9, reviews:61, channels:["blog","place"], score:0},
-  {name:"바다한의원", cat:"한의원", addr:"강남구 선릉로", blogHits:6, reviews:45, channels:["home","place"], score:0},
-  {name:"사랑한의원", cat:"한의원", addr:"강남구 역삼로", blogHits:4, reviews:33, channels:["place"], score:0},
-];
+async function collect(){
+  state.kwResults={};
+  const agg={};
+  const selfBare=bare(state.target.name);
+
+  for(let ki=0; ki<state.keywords.length; ki++){
+    const kw=state.keywords[ki];
+    const slot={place:[], blog:[], web:[]};
+    try{
+      const loc=await fetchType("local",kw,5);
+      (loc.items||[]).forEach((it,idx)=>{
+        slot.place.push({name:clean(it.title), rank:idx+1, addr:(it.roadAddress||it.address||""), cat:it.category||"", link:it.link||""});
+      });
+    }catch(e){}
+    try{
+      const blog=await fetchType("blog",kw,10);
+      (blog.items||[]).forEach((it,idx)=>{ slot.blog.push({txt:bare(clean(it.title)+clean(it.description)), rank:idx+1}); });
+    }catch(e){}
+    try{
+      const web=await fetchType("webkr",kw,10);
+      (web.items||[]).forEach((it,idx)=>{ slot.web.push({txt:bare(clean(it.title)+clean(it.description)), rank:idx+1}); });
+    }catch(e){}
+    state.kwResults[ki]={kw, slot};
+
+    slot.place.forEach(p=>{
+      const key=bare(p.name);
+      if(selfBare && (key.includes(selfBare)||selfBare.includes(key))) return;
+      if(!agg[key]) agg[key]={name:p.name, addr:p.addr, cat:p.cat, kw:{}, occ:{place:0,blog:0,web:0}};
+      if(!agg[key].kw[ki]) agg[key].kw[ki]={};
+      if(!agg[key].kw[ki].place || p.rank<agg[key].kw[ki].place) agg[key].kw[ki].place=p.rank;
+    });
+  }
+  // 블로그/웹 본문에 후보 병원명이 잡히면 점유 인정
+  for(let ki=0; ki<state.keywords.length; ki++){
+    const sl=state.kwResults[ki].slot;
+    Object.values(agg).forEach(c=>{
+      const cb=bare(c.name);
+      sl.blog.forEach(b=>{ if(b.txt.includes(cb)){ if(!c.kw[ki])c.kw[ki]={}; if(!c.kw[ki].blog||b.rank<c.kw[ki].blog)c.kw[ki].blog=b.rank; } });
+      sl.web.forEach(w=>{ if(w.txt.includes(cb)){ if(!c.kw[ki])c.kw[ki]={}; if(!c.kw[ki].web||w.rank<c.kw[ki].web)c.kw[ki].web=w.rank; } });
+    });
+  }
+  Object.values(agg).forEach(c=>{
+    c.occ={place:0,blog:0,web:0};
+    Object.values(c.kw).forEach(s=>{ if(s.place)c.occ.place++; if(s.blog)c.occ.blog++; if(s.web)c.occ.web++; });
+  });
+  return Object.values(agg);
+}
+
 function scorePool(pool){
-  const maxB=Math.max(...pool.map(p=>p.blogHits),1), maxR=Math.max(...pool.map(p=>p.reviews),1);
-  const hasReviews=pool.some(p=>p.reviews>0);
-  pool.forEach(p=>{
-    const b=p.blogHits/maxB, r=p.reviews/maxR, c=p.channels.length/5;
-    // 리뷰 데이터가 없으면(실데이터) 블로그 노출 중심으로 점수 재배분
-    p.score = hasReviews
-      ? Math.round((b*0.45 + r*0.30 + c*0.25)*100)
-      : Math.round((b*0.75 + c*0.25)*100);
+  const K=state.keywords.length||1;
+  pool.forEach(c=>{
+    let s=0;
+    Object.values(c.kw).forEach(slot=>{
+      ["place","blog","web"].forEach(t=>{
+        if(slot[t]){
+          const rankW=Math.max(0, 1-(slot[t]-1)*0.09);
+          const typeW={place:1.0, blog:0.7, web:0.5}[t];
+          s += rankW*typeW;
+        }
+      });
+    });
+    c.score=Math.round(Math.min(100, (s/(K*2.2))*100));
   });
   return pool.sort((a,b)=>b.score-a.score);
 }
 
-/* ---------- real Naver fetch via GAS proxy ---------- */
-async function naverLocal(query){
-  const url=PROXY+"?type=local&query="+encodeURIComponent(query);
-  const r=await fetch(url);
-  const j=await r.json(); return j.items||[];
-}
-async function naverBlogCount(query){
-  const url=PROXY+"?type=blog&query="+encodeURIComponent(query);
-  const r=await fetch(url);
-  const j=await r.json(); return j.total||0;
-}
-async function collectReal(){
-  const seen={}, pool=[];
-  for(const kw of state.keywords){
-    const items=await naverLocal(kw);
-    for(const it of items){
-      const nm=it.title.replace(/<[^>]+>/g,"");
-      if(seen[nm]) continue; seen[nm]=1;
-      pool.push({name:nm, cat:it.category||"", addr:(it.roadAddress||it.address||""),
-        blogHits:0, reviews:0, channels:["place"], link:it.link, score:0});
-    }
-  }
-  for(const p of pool){ try{ p.blogHits=Math.min(await naverBlogCount(p.name),999);}catch(e){} }
-  return pool;
-}
-
-/* ---------- run ---------- */
 $("#runBtn").onclick=async()=>{
   state.target.name=$("#targetName").value.trim()||"영업 대상";
   state.target.area=$("#targetArea").value.trim();
   if(state.keywords.length===0){ kwInput.focus(); kwInput.placeholder="키워드를 1개 이상 넣어주세요 ↵"; return; }
+  const btn=$("#runBtn"), orig=btn.textContent;
+  btn.disabled=true; btn.textContent="분석 중… 키워드당 5~8초";
   let pool;
-  if(DEMO){ pool=JSON.parse(JSON.stringify(DEMO_POOL)); }
-  else { try{ pool=await collectReal(); }catch(e){ alert("네이버 API 호출 실패: "+e.message); return; } }
+  try{ pool=await collect(); }
+  catch(e){ alert("호출 실패: "+e.message); btn.disabled=false; btn.textContent=orig; return; }
   state.pool=scorePool(pool); state.picked=[];
   renderPool();
   $("#step2").classList.remove("hidden");
-  $("#step2").scrollIntoView({behavior:"smooth",block:"start"});
+  btn.disabled=false; btn.textContent=orig;
+  requestAnimationFrame(()=>$("#step2").scrollIntoView({behavior:"smooth",block:"start"}));
 };
 
-/* ---------- STEP 2 render ---------- */
-const CH_ICON={home:"🌐 홈피", blog:"📝 블로그", insta:"📷 인스타", youtube:"▶ 유튜브", place:"📍 플레이스"};
 function renderPool(){
   const pool=$("#pool"); pool.innerHTML="";
-  if(state.pool.length===0){ pool.appendChild(el("div","empty","<i>🔍</i>수집된 후보가 없습니다.")); }
-  state.pool.forEach((p,i)=>{
+  if(state.pool.length===0){ pool.appendChild(el("div","empty","수집된 후보가 없습니다. 키워드를 바꿔보세요.")); }
+  state.pool.forEach((c,i)=>{
     const picked=state.picked.includes(i);
+    const occTags=[];
+    if(c.occ.place) occTags.push(`<span class="occ-tag occ-place">플레이스 ${c.occ.place}회</span>`);
+    if(c.occ.blog)  occTags.push(`<span class="occ-tag occ-blog">블로그 ${c.occ.blog}회</span>`);
+    if(c.occ.web)   occTags.push(`<span class="occ-tag occ-web">웹 ${c.occ.web}회</span>`);
+    const kwHits=Object.keys(c.kw).map(ki=>`<span class="kwhit">${state.keywords[ki]}</span>`).join("");
     const row=el("div","cand"+(picked?" picked":""));
-    const chTxt=p.channels.map(c=>CH_ICON[c]||c).join(" · ");
     row.innerHTML=`
-      <div class="rank">${i+1}</div>
-      <div>
-        <div class="nm">${p.name}</div>
-        <div class="meta"><i>${p.cat||"한의원"}</i><i>${p.addr||""}</i>
-          <i>블로그 노출 ${p.blogHits}</i><i>리뷰 ${p.reviews||"–"}</i><i>${chTxt}</i></div>
-      </div>
-      <div class="score">
-        <div class="scorebar"><i style="width:${p.score}%"></i></div>
-        <div class="scoreval">${p.score}</div>
-        <button class="pickbtn" data-i="${i}">${picked?"✓":"+"}</button>
+      <div class="cand-top">
+        <div class="rank">${i+1}</div>
+        <div>
+          <div class="nm">${c.name}</div>
+          <div class="meta">${c.cat||"병원"} · ${c.addr||""}</div>
+          <div class="occ">${occTags.join("")}</div>
+          <div style="margin-top:5px;">${kwHits}</div>
+        </div>
+        <div class="score">
+          <div class="scorebar"><i style="width:${c.score}%"></i></div>
+          <div class="scoreval">${c.score}</div>
+          <button class="pickbtn">${picked?"✓":"+"}</button>
+        </div>
       </div>`;
     row.querySelector(".pickbtn").onclick=()=>togglePick(i);
     pool.appendChild(row);
@@ -331,113 +354,61 @@ function togglePick(i){
   renderPool();
 }
 
-/* ---------- research links ---------- */
 $("#researchBtn").onclick=()=>{
-  if(state.picked.length===0){ alert("먼저 조사할 병원을 선택하세요."); return; }
+  if(state.picked.length===0){ alert("먼저 경쟁사를 선택하세요."); return; }
   state.picked.forEach(i=>{
-    const nm=state.pool[i].name;
-    window.open("https://search.naver.com/search.naver?query="+encodeURIComponent(nm),"_blank");
+    window.open("https://map.naver.com/p/search/"+encodeURIComponent(state.pool[i].name),"_blank");
   });
 };
 
-/* ---------- STEP 3: compare ---------- */
-const AXES_MEDIA=[
-  {n:"핵심 키워드 검색 순위", s:"semi", k:"rank"},
-  {n:"온드 채널 보유 폭", s:"auto", k:"channels"},
-  {n:"블로그 노출 흔적", s:"auto", k:"blog"},
-  {n:"네이버 리뷰 수", s:"auto", k:"reviews"},
-  {n:"검색형 페이드(파워링크)", s:"semi", k:"paid"},
-  {n:"배너형(GFA·메타 등)", s:"none", k:"banner"},
-];
-const AXES_BRAND=[
-  {n:"포지셔닝 명확성", sub:"무엇으로 기억되나", s:"hand"},
-  {n:"메시지 차별화", sub:"남과 다른 한마디", s:"hand"},
-  {n:"가격 결정력", sub:"할인 없이 받을 힘", s:"hand"},
-];
-function gradeChannels(n){ return n>=5?["good",n+"종"]:n>=3?["warn",n+"종"]:["bad",n+"종"]; }
-function gradeBlog(h){ return h>=20?["good",h]:h>=8?["warn",h]:["bad",h]; }
-function gradeReviews(r){ return r>=150?["good",r]:r>=60?["warn",r]:["bad",r]; }
-function cell(g){ return `<div class="cell c-${g[0]}"><div class="v">${g[1]}</div></div>`; }
-function cellT(g,t){ return `<div class="cell c-${g}"><div class="v">${t}</div></div>`; }
-
-$("#compareBtn").onclick=()=>{
+$("#sheetBtn").onclick=()=>{
   if(state.picked.length===0){ alert("경쟁사를 최소 1곳 선택하세요."); return; }
-  buildCompare();
+  buildSheet();
   $("#step3").classList.remove("hidden");
-  $("#step3").scrollIntoView({behavior:"smooth",block:"start"});
+  requestAnimationFrame(()=>$("#step3").scrollIntoView({behavior:"smooth",block:"start"}));
 };
 
-function buildCompare(){
+function od(on,color){ return `<i class="od" style="background:${on?color:'var(--none-bg)'}"></i>`; }
+function shorten(n){ return n.length>8?n.slice(0,8)+"…":n; }
+
+function buildSheet(){
   const comps=state.picked.map(i=>state.pool[i]);
-  const us={name:state.target.name, channels:["home","blog","place"].length, blogHits:5, reviews:47, rank:"5위 밖"};
-  const srcTag={auto:'<span class="src src-auto">●</span>',semi:'<span class="src src-semi">◐</span>',none:'<span class="src src-none src-hand" style="background:var(--none-bg);color:var(--none)">○</span>',hand:'<span class="src src-hand">✎</span>'};
-
-  let html=`<thead><tr><th class="axis">진단 축</th>
-    <th class="us">${us.name}<div class="role">우리 잠재고객</div></th>`;
-  comps.forEach((c,n)=>{ html+=`<th class="cp">${shortName(c.name)}<span class="role">경쟁 ${n+1}</span></th>`; });
+  let html=`<thead><tr><th class="kw">키워드</th><th class="us">${state.target.name}<br><span style="font-size:9.5px;color:var(--mint);">우리 잠재고객</span></th>`;
+  comps.forEach(c=>{ html+=`<th>${shorten(c.name)}</th>`; });
   html+=`</tr></thead><tbody>`;
-
-  AXES_MEDIA.forEach(ax=>{
-    html+=`<tr><td class="axis"><div class="ax-n">${srcTag[ax.s]} ${ax.n}</div></td>`;
-    html+=usMediaCell(ax,us);
-    comps.forEach(c=>{ html+=compMediaCell(ax,c); });
-    html+=`</tr>`;
-  });
-  html+=`<tr><td colspan="${comps.length+2}" style="padding:10px 8px 4px; border:none;">
-    <span style="font-size:10.5px; font-weight:700; color:var(--muted); letter-spacing:.5px;">— 브랜딩 진단 (해석) —</span></td></tr>`;
-  const brandDemo={
-    us:[["bad","흐릿함"],["bad","모두와 동일"],["bad","할인 의존"]],
-    cp:[[["good","선명"],["warn","일부 선점"],["good","정가 유지"]],
-        [["warn","중복"],["bad","동일"],["warn","부분 할인"]],
-        [["warn","중복"],["bad","동일"],["bad","할인 의존"]]]
-  };
-  AXES_BRAND.forEach((ax,ai)=>{
-    html+=`<tr><td class="axis"><div class="ax-n">${srcTag.hand} ${ax.n}</div><div class="ax-s">${ax.sub}</div></td>`;
-    html+=cellT(brandDemo.us[ai][0],brandDemo.us[ai][1]);
-    comps.forEach((c,ci)=>{ const g=(brandDemo.cp[ci]||brandDemo.cp[0])[ai]; html+=cellT(g[0],g[1]); });
+  state.keywords.forEach((kw,ki)=>{
+    html+=`<tr><td class="kw">${kw}</td>`;
+    html+=`<td><span style="font-size:10px;color:var(--none);">직접 확인</span></td>`;
+    comps.forEach(c=>{
+      const s=c.kw[ki]||{};
+      html+=`<td><span class="ocell">${od(s.place,'var(--place)')}${od(s.blog,'var(--blog)')}${od(s.web,'var(--web)')}</span></td>`;
+    });
     html+=`</tr>`;
   });
   html+=`</tbody>`;
-  $("#cmpTable").innerHTML=html;
-  buildVerdict(us,comps);
-}
-function shortName(n){ return n.length>9?n.slice(0,9)+"…":n; }
-function usMediaCell(ax,us){
-  if(ax.k==="channels") return cell(gradeChannels(us.channels));
-  if(ax.k==="blog") return cell(gradeBlog(us.blogHits));
-  if(ax.k==="reviews") return cell(gradeReviews(us.reviews));
-  if(ax.k==="rank") return cellT("bad",us.rank);
-  if(ax.k==="paid") return cellT("warn","확인 필요");
-  if(ax.k==="banner") return cellT("none","미관측");
-  return cellT("none","–");
-}
-function compMediaCell(ax,c){
-  if(ax.k==="channels") return cell(gradeChannels(c.channels.length));
-  if(ax.k==="blog") return cell(gradeBlog(c.blogHits));
-  if(ax.k==="reviews") return cell(gradeReviews(c.reviews||0));
-  if(ax.k==="rank") return cellT("good","상위");
-  if(ax.k==="paid") return cellT("warn","확인 필요");
-  if(ax.k==="banner") return cellT("none","미관측");
-  return cellT("none","–");
-}
-function buildVerdict(us,comps){
+  $("#occTable").innerHTML=html;
+
+  const fb=$("#findBoxes"); fb.innerHTML="";
+  [{name:state.target.name, us:true}, ...comps].forEach(c=>{
+    const box=el("div","find-box");
+    box.innerHTML=`<label class="fld">${c.us?'⭐ ':''}${c.name}${c.us?' (우리 잠재고객)':''}</label>
+      <textarea placeholder="${c.us?'현재 노출 상태, 부족한 점, 기회…':'플레이스 채널(블로그·유튜브·인스타·카페), 광고 집행, 리뷰 수, 강점…'}"></textarea>`;
+    fb.appendChild(box);
+  });
+
   const top=comps[0];
-  const v=$("#verdict");
-  v.innerHTML=`<h3>📋 스토리텔링 멘트 (사실 → 해석)</h3>
-    <p><span class="tag">사실</span> <span class="fact">${shortName(top.name)}</span>은(는) 블로그 노출 ${top.blogHits}건·채널 ${top.channels.length}종으로 환자 접점을 깔아놨습니다.
-    ${us.name}은(는) 블로그 ${us.blogHits}건·검색 ${us.rank}로 같은 화면에서 밀리고 있습니다.</p>
-    <p><span class="tag">해석</span> 노출이 부족한 게 핵심이 아니라, <span class="danger">포지셔닝이 흐려 할인에 끌려가는</span> 구조입니다.
-    그런데 <span class="chance">메시지 차별화는 경쟁사도 비어 있어</span>, 매체를 깔기 전에 "무엇으로 기억될 병원인가"를 먼저 선점하면 적은 비용으로 위를 칩니다.</p>`;
+  const totalKw=state.keywords.length;
+  $("#verdictText").value=
+`[현황] "${state.keywords.join(', ')}" 검색 시장에서 ${top.name}이(가) 가장 넓게 노출을 점유하고 있습니다 (플레이스 ${top.occ.place}회·블로그 ${top.occ.blog}회·웹 ${top.occ.web}회 / 총 ${totalKw}개 키워드 기준).
+
+[진단] ${state.target.name}은(는) 같은 키워드 화면에서 노출 점유가 약합니다. 노출량 자체보다, 어떤 메시지로 기억될지가 비어 있는 것이 핵심입니다.
+
+[제안] (여기에 우리가 무엇을 해줄지 — 상품 설명서 연결 — 를 적으세요)`;
 }
 
-/* reset */
 $("#resetBtn").onclick=()=>{ state.pool=[]; state.picked=[];
   $("#step2").classList.add("hidden"); $("#step3").classList.add("hidden");
   window.scrollTo({top:0,behavior:"smooth"}); };
-
-/* mode badge */
-if(!DEMO){ $("#modeBadge").textContent="실데이터 모드"; $("#modeBadge").style.background="rgba(25,198,166,.18)";
-  $("#keyNotice").classList.add("hidden"); }
 </script>
 </body>
 </html>
