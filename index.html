@@ -146,6 +146,11 @@
   .ch-subj input{padding:7px 10px; font-size:12.5px;}
   .ch-row.off{opacity:.4;}
   .ch-row.off input{pointer-events:none;}
+  .ch-row.off input.ch-chk{pointer-events:auto;}
+  .ch-cname{border:1px solid var(--line); border-radius:7px; padding:5px 8px; font-size:12px;
+    font-family:inherit; width:140px; margin-left:2px;}
+  .ch-cname:focus{outline:none; border-color:var(--navy-2);}
+  .ch-dot{display:inline-flex; width:22px; justify-content:center; color:var(--mint-deep); font-size:11px;}
   /* result card mode */
   .fc-card{padding:8px 16px 16px;}
   .ch-line{display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:center; padding:11px 0; border-bottom:1px solid var(--line);}
@@ -331,6 +336,7 @@ const CHANNELS=[
   {key:"insta", name:"인스타그램",    nums:[{k:"follower",label:"팔로워"},{k:"posts",label:"게시글수"}]},
   {key:"kakao", name:"카카오채널",    nums:[{k:"friend",label:"친구수"}]},
   {key:"youtube",name:"유튜브",       nums:[{k:"sub",label:"구독자"},{k:"videos",label:"영상수"}]},
+  {key:"etc",   name:"기타",         nums:[{k:"etcnum",label:"수치(선택)"}], custom:true},
 ];
 
 
@@ -656,14 +662,17 @@ function buildFindClinic(name, isUs, idx){
   // input area
   const inp=el("div","fc-input");
   CHANNELS.forEach(ch=>{
-    const row=el("div","ch-row off");
+    const row=el("div","ch-row off"+(ch.custom?" ch-custom":""));
     row.dataset.key=ch.key;
     const numsHtml = ch.nums.length
       ? ch.nums.map(n=>`<div class="numwrap"><label>${n.label}</label><input type="text" data-num="${n.k}" placeholder="0"></div>`).join("")
       : `<span style="font-size:11px;color:var(--none);">보유 여부만</span>`;
+    const nameHtml = ch.custom
+      ? `<div class="ch-name"><span class="ch-dot">●</span><input type="text" class="ch-cname" placeholder="채널명 (예: 당근·틱톡·톡톡)"></div>`
+      : `<div class="ch-name"><img src="${ICONS[ch.key]||''}" alt=""> ${ch.name}</div>`;
     row.innerHTML=`
       <input type="checkbox" class="ch-chk">
-      <div class="ch-name"><img src="${ICONS[ch.key]||''}" alt=""> ${ch.name}</div>
+      ${nameHtml}
       <div class="ch-nums">${numsHtml}</div>
       <div class="ch-subj"><input type="text" data-subj placeholder="브랜드 관점 한 줄 (예: 영상으로 신뢰 선점)"></div>`;
     const chk=row.querySelector(".ch-chk");
@@ -692,7 +701,12 @@ function buildFindClinic(name, isUs, idx){
         const v=ni.value.trim(); if(v) nums.push({label:ch.nums.find(x=>x.k===ni.dataset.num).label, val:v});
       });
       const subj=(row.querySelector("[data-subj]").value||"").trim();
-      lines.push({key, name:ch.name, nums, subj});
+      let dispName=ch.name;
+      if(ch.custom){
+        const cn=(row.querySelector(".ch-cname")?.value||"").trim();
+        dispName = cn ? cn : "기타";
+      }
+      lines.push({key, name:dispName, nums, subj});
     });
     renderCard(card, lines);
     inp.classList.add("hidden"); confirmBtn.classList.add("hidden");
@@ -716,7 +730,7 @@ function renderCard(card, lines){
       : '<span style="color:var(--mint-deep);font-weight:700;">운영 중</span>';
     return `<div class="ch-line">
       <div class="ch-fact">
-        <img src="${ICONS[l.key]||''}" alt="">
+        ${ICONS[l.key] ? `<img src="${ICONS[l.key]}" alt="">` : `<span class="ch-dot">●</span>`}
         <div><div class="cf-t">${l.name}</div><div class="cf-n">${factNums}</div></div>
       </div>
       <div class="ch-subjective">${l.subj||''}</div>
