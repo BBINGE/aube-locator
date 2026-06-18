@@ -78,7 +78,15 @@
   .notice-key{background:var(--warn-bg); color:#8A5E12; border:1px solid #F0DCB0;}
 
   .cand{border:1px solid var(--line); border-radius:11px; margin-bottom:9px; background:#fff; transition:border .15s; overflow:hidden;}
-  .cand.picked{border-color:var(--mint);}
+  .selfbox{border:1.5px solid var(--mint); border-radius:12px; margin-bottom:16px; background:var(--good-bg); overflow:hidden;}
+  .selfbox-label{font-size:11px; font-weight:700; color:var(--mint-deep); padding:9px 14px 0; display:flex; align-items:center; gap:6px;}
+  .selfbox-top{display:grid; grid-template-columns:1fr auto; gap:12px; align-items:center; padding:7px 14px 13px;}
+  .selfbox .nm{font-size:15px; font-weight:800; color:var(--navy);}
+  .selfbox .meta{font-size:11.5px; color:var(--muted); margin-top:2px;}
+  .selfbox .occ{margin-top:6px;}
+  .selfbox-verdict{font-size:12px; padding:9px 14px; background:rgba(255,255,255,.55);
+    border-top:1px dashed var(--mint); color:var(--ink); line-height:1.5;}
+  .selfbox-none{padding:13px 14px; font-size:12.5px; color:var(--muted); line-height:1.55;}
   .cand-top{display:grid; grid-template-columns:30px 1fr auto; gap:12px; align-items:center; padding:13px 14px;}
   .cand.picked .cand-top{background:var(--good-bg);}
   .cand .rank{font-size:15px; font-weight:800; color:var(--navy-2); text-align:center;}
@@ -222,6 +230,7 @@
       <button class="btn btn-ghost btn-sm" id="researchBtn">선택 병원 플레이스 열기</button>
       <button class="btn btn-mint btn-sm" id="sheetBtn">결과지 만들기 →</button>
     </div>
+    <div id="selfBox"></div>
     <div id="pool"></div>
   </div>
 
@@ -325,7 +334,7 @@ const CHANNELS=[
 ];
 
 
-const state = { keywords:[], pool:[], picked:[], target:{name:"",area:""}, kwResults:{} };
+const state = { keywords:[], pool:[], picked:[], target:{name:"",area:""}, kwResults:{}, selfData:null };
 const $ = s => document.querySelector(s);
 const el = (t,c,h)=>{const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e;};
 
@@ -417,6 +426,7 @@ function bare(s){ return clean(s).replace(/\s/g,""); }
 async function collect(){
   state.kwResults={};
   const agg={};
+  const selfAgg={};   // 영업 대상 전용 집계 (경쟁 후보와 분리)
   const selfBare=bare(state.target.name);
 
   for(let ki=0; ki<state.keywords.length; ki++){
@@ -440,43 +450,49 @@ async function collect(){
 
     slot.place.forEach(p=>{
       const key=bare(p.name);
-      if(selfBare && (key.includes(selfBare)||selfBare.includes(key))) return;
-      if(!agg[key]) agg[key]={name:p.name, addr:p.addr, cat:p.cat, kw:{}, occ:{place:0,blog:0,web:0}};
-      if(!agg[key].kw[ki]) agg[key].kw[ki]={};
-      if(!agg[key].kw[ki].place || p.rank<agg[key].kw[ki].place) agg[key].kw[ki].place=p.rank;
+      const isSelf = selfBare && (key.includes(selfBare)||selfBare.includes(key));
+      const bucket = isSelf ? selfAgg : agg;   // 영업 대상이면 selfAgg로
+      if(!bucket[key]) bucket[key]={name:p.name, addr:p.addr, cat:p.cat, kw:{}, occ:{place:0,blog:0,web:0}};
+      if(!bucket[key].kw[ki]) bucket[key].kw[ki]={};
+      if(!bucket[key].kw[ki].place || p.rank<bucket[key].kw[ki].place) bucket[key].kw[ki].place=p.rank;
     });
   }
-  // 블로그/웹 본문에 후보 병원명이 잡히면 점유 인정
+  // 블로그/웹 본문에 후보(또는 영업 대상) 병원명이 잡히면 점유 인정
   for(let ki=0; ki<state.keywords.length; ki++){
     const sl=state.kwResults[ki].slot;
-    Object.values(agg).forEach(c=>{
+    [...Object.values(agg), ...Object.values(selfAgg)].forEach(c=>{
       const cb=bare(c.name);
       sl.blog.forEach(b=>{ if(b.txt.includes(cb)){ if(!c.kw[ki])c.kw[ki]={}; if(!c.kw[ki].blog||b.rank<c.kw[ki].blog)c.kw[ki].blog=b.rank; } });
       sl.web.forEach(w=>{ if(w.txt.includes(cb)){ if(!c.kw[ki])c.kw[ki]={}; if(!c.kw[ki].web||w.rank<c.kw[ki].web)c.kw[ki].web=w.rank; } });
     });
   }
-  Object.values(agg).forEach(c=>{
+  [...Object.values(agg), ...Object.values(selfAgg)].forEach(c=>{
     c.occ={place:0,blog:0,web:0};
     Object.values(c.kw).forEach(s=>{ if(s.place)c.occ.place++; if(s.blog)c.occ.blog++; if(s.web)c.occ.web++; });
   });
-  return Object.values(agg);
+  // 영업 대상은 여러 변형이 잡힐 수 있어 가장 노출 많은 하나만 대표로
+  const selfList=Object.values(selfAgg).sort((a,b)=>
+    (b.occ.place+b.occ.blog+b.occ.web)-(a.occ.place+a.occ.blog+a.occ.web));
+  return { pool:Object.values(agg), selfData:selfList[0]||null };
 }
 
-function scorePool(pool){
+function scoreOne(c){
   const K=state.keywords.length||1;
-  pool.forEach(c=>{
-    let s=0;
-    Object.values(c.kw).forEach(slot=>{
-      ["place","blog","web"].forEach(t=>{
-        if(slot[t]){
-          const rankW=Math.max(0, 1-(slot[t]-1)*0.09);
-          const typeW={place:1.0, blog:0.7, web:0.5}[t];
-          s += rankW*typeW;
-        }
-      });
+  let s=0;
+  Object.values(c.kw).forEach(slot=>{
+    ["place","blog","web"].forEach(t=>{
+      if(slot[t]){
+        const rankW=Math.max(0, 1-(slot[t]-1)*0.09);
+        const typeW={place:1.0, blog:0.7, web:0.5}[t];
+        s += rankW*typeW;
+      }
     });
-    c.score=Math.round(Math.min(100, (s/(K*2.2))*100));
   });
+  c.score=Math.round(Math.min(100, (s/(K*2.2))*100));
+  return c;
+}
+function scorePool(pool){
+  pool.forEach(scoreOne);
   return pool.sort((a,b)=>b.score-a.score);
 }
 
@@ -486,17 +502,59 @@ $("#runBtn").onclick=async()=>{
   if(state.keywords.length===0){ kwInput.focus(); kwInput.placeholder="키워드를 1개 이상 넣어주세요 ↵"; return; }
   const btn=$("#runBtn"), orig=btn.textContent;
   btn.disabled=true; btn.textContent="분석 중… 키워드당 5~8초";
-  let pool;
-  try{ pool=await collect(); }
+  let result;
+  try{ result=await collect(); }
   catch(e){ alert("호출 실패: "+e.message); btn.disabled=false; btn.textContent=orig; return; }
-  state.pool=scorePool(pool); state.picked=[];
+  state.pool=scorePool(result.pool); state.picked=[];
+  state.selfData = result.selfData ? scoreOne(result.selfData) : null;
   renderPool();
   $("#step2").classList.remove("hidden");
   btn.disabled=false; btn.textContent=orig;
   requestAnimationFrame(()=>$("#step2").scrollIntoView({behavior:"smooth",block:"start"}));
 };
 
+function renderSelfBox(){
+  const box=$("#selfBox"); box.innerHTML="";
+  const s=state.selfData;
+  if(!s){
+    const d=el("div","selfbox");
+    d.innerHTML=`<div class="selfbox-label">⭐ 우리 영업 대상 · ${state.target.name}</div>
+      <div class="selfbox-none">입력한 키워드들의 검색 1페이지에서 <b>${state.target.name}</b>이(가) 잡히지 않았습니다.
+      플레이스 노출이 약하거나, 상호가 검색결과에 다르게 표기될 수 있어요. 키워드를 바꿔보거나 플레이스를 직접 확인해보세요.</div>`;
+    box.appendChild(d);
+    return;
+  }
+  const occTags=[];
+  if(s.occ.place) occTags.push(`<span class="occ-tag occ-place">플레이스 ${s.occ.place}회</span>`);
+  if(s.occ.blog)  occTags.push(`<span class="occ-tag occ-blog">블로그 ${s.occ.blog}회</span>`);
+  if(s.occ.web)   occTags.push(`<span class="occ-tag occ-web">웹 ${s.occ.web}회</span>`);
+  // 경쟁 후보 최고점과 비교
+  const top=state.pool[0];
+  let verdict;
+  if(!top){ verdict=`경쟁 후보가 수집되지 않아 비교 대상이 없습니다. 점유 점수 자체로 보세요.`; }
+  else if(s.score>=top.score){ verdict=`이미 이 키워드 군에서 <b>최상위권 점유</b>(경쟁 후보 1위 ${top.name} ${top.score}점 이상). 영업 시 "노출이 약하다"가 아니라 <b>방어·격차 확대</b> 관점으로 접근해야 합니다.`; }
+  else if(s.score>=top.score*0.6){ verdict=`경쟁 후보 1위(${top.name} ${top.score}점)와 <b>겨루는 중위권</b>. 특정 키워드에서 밀리는지 표에서 확인하세요.`; }
+  else { verdict=`경쟁 후보 1위(${top.name} ${top.score}점) 대비 <b>노출 열세</b>. 추격 여지가 큰 구간입니다.`; }
+  const d=el("div","selfbox");
+  d.innerHTML=`
+    <div class="selfbox-label">⭐ 우리 영업 대상 (경쟁 후보와 분리 표시)</div>
+    <div class="selfbox-top">
+      <div>
+        <div class="nm">${s.name}</div>
+        <div class="meta">${s.cat||"병원"} · ${s.addr||""}</div>
+        <div class="occ">${occTags.join("")}</div>
+      </div>
+      <div class="score">
+        <div class="scorebar"><i style="width:${s.score}%"></i></div>
+        <div class="scoreval">${s.score}</div>
+      </div>
+    </div>
+    <div class="selfbox-verdict">${verdict}</div>`;
+  box.appendChild(d);
+}
+
 function renderPool(){
+  renderSelfBox();
   const pool=$("#pool"); pool.innerHTML="";
   if(state.pool.length===0){ pool.appendChild(el("div","empty","수집된 후보가 없습니다. 키워드를 바꿔보세요.")); }
   state.pool.forEach((c,i)=>{
@@ -666,7 +724,8 @@ function renderCard(card, lines){
   }).join("");
 }
 
-$("#resetBtn").onclick=()=>{ state.pool=[]; state.picked=[];
+$("#resetBtn").onclick=()=>{ state.pool=[]; state.picked=[]; state.selfData=null;
+  const sb=$("#selfBox"); if(sb) sb.innerHTML="";
   $("#step2").classList.add("hidden"); $("#step3").classList.add("hidden");
   window.scrollTo({top:0,behavior:"smooth"}); };
 </script>
