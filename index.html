@@ -117,6 +117,19 @@
   .auto-pill{font-size:9.5px; font-weight:700; color:var(--mint-deep); background:var(--good-bg); padding:1px 7px; border-radius:5px;}
   .find-pill{font-size:9.5px; font-weight:700; color:#6A4DB0; background:#F0ECFB; padding:1px 7px; border-radius:5px;}
   .occ-grid{overflow-x:auto;}
+  .bar-row{display:grid; grid-template-columns:170px 1fr 96px; gap:12px; align-items:center; margin-bottom:10px;}
+  .bar-row .bar-name{font-size:13px; font-weight:700; color:var(--ink); text-align:right; line-height:1.25; word-break:keep-all;}
+  .bar-row.is-us .bar-name{color:var(--mint-deep);}
+  .bar-track{height:26px; background:var(--none-bg); border-radius:7px; overflow:hidden; position:relative;}
+  .bar-fill{height:100%; border-radius:7px; background:linear-gradient(90deg,#7C83D8,#5B9BD5); transition:width .5s; min-width:2px;}
+  .bar-row.is-us .bar-fill{background:linear-gradient(90deg,var(--mint),var(--mint-deep));}
+  .bar-row.rank1 .bar-fill{background:linear-gradient(90deg,#4A4F9E,#3A6FA5);}
+  .bar-val{font-size:13px; font-weight:800; color:var(--navy);}
+  .bar-val .abs{font-size:10.5px; font-weight:500; color:var(--muted); margin-left:3px;}
+  .bar-row.is-us .bar-val{color:var(--mint-deep);}
+  .bar-ustag{display:inline-block; font-size:9.5px; font-weight:700; color:#fff; background:var(--mint-deep);
+    border-radius:4px; padding:1px 5px; margin-left:5px; vertical-align:middle;}
+  @media(max-width:560px){ .bar-row{grid-template-columns:96px 1fr 70px; gap:8px;} .bar-row .bar-name{font-size:11.5px;} }
   table.occ-t{width:100%; border-collapse:separate; border-spacing:0; font-size:12px; min-width:520px;}
   table.occ-t th{padding:9px 8px; text-align:center; font-weight:700; font-size:11.5px; border-bottom:2px solid var(--line); color:var(--muted);}
   table.occ-t th.kw{text-align:left; width:170px;}
@@ -175,9 +188,14 @@
   .legend2 span{display:flex; align-items:center; gap:5px;}
   .legend2 .od{width:11px; height:11px;}
   @media print{
+    *{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
     .hbadge,.toolbar,.btn,.notice-key,#step1,#step2,.fc-toggle,.fc-input,.print-hide{display:none!important;}
     .card{border:none; padding:0; margin-bottom:14px;} body{background:#fff;}
     .find-clinic{break-inside:avoid;}
+    #occDetail{display:block !important;}      /* 접혀 있어도 인쇄엔 펼침 */
+    #occCaret{display:none !important;}
+    .bar-row{break-inside:avoid;}
+    #barChart{break-inside:avoid;}
   }
 </style>
 </head>
@@ -243,14 +261,22 @@
     <h2><span class="step-no">3</span>미팅용 결과지 <span style="font-size:11px; font-weight:500; color:var(--muted);">(자동 초안 + 직접 다듬기)</span></h2>
 
     <div class="sheet-block">
-      <div class="sheet-h">시장 노출 점유 현황 <span class="auto-pill">자동</span></div>
-      <p class="sub" style="margin:0 0 8px;">각 키워드 1페이지에서 누가 어떤 형태로 노출되는지. ■칸이 채워질수록 그 키워드를 장악.</p>
-      <div class="legend2">
-        <span><i class="od" style="background:var(--place)"></i>플레이스</span>
-        <span><i class="od" style="background:var(--blog)"></i>블로그</span>
-        <span><i class="od" style="background:var(--web)"></i>웹/홈피</span>
+      <div class="sheet-h">시장 노출 점유 — 한눈 비교 <span class="auto-pill">자동</span></div>
+      <p class="sub" style="margin:0 0 12px;">입력한 키워드 시장에서 누가 더 넓게 노출을 쥐고 있는지. <b>막대 = 이 판 1위 대비 상대 점유</b> (괄호 안은 절대 점수).</p>
+      <div id="barChart"></div>
+    </div>
+
+    <div class="sheet-block">
+      <div class="sheet-h" style="cursor:pointer;" id="occToggle">키워드별 상세 점유 <span class="auto-pill">자동</span> <span id="occCaret" style="font-size:11px;color:var(--muted);font-weight:500;">▶ 펼치기</span></div>
+      <div id="occDetail" class="hidden">
+        <p class="sub" style="margin:8px 0 8px;">각 키워드 1페이지에서 누가 어떤 형태로 노출되는지. ■칸이 채워질수록 그 키워드를 장악.</p>
+        <div class="legend2">
+          <span><i class="od" style="background:var(--place)"></i>플레이스</span>
+          <span><i class="od" style="background:var(--blog)"></i>블로그</span>
+          <span><i class="od" style="background:var(--web)"></i>웹/홈피</span>
+        </div>
+        <div class="occ-grid"><table class="occ-t" id="occTable"></table></div>
       </div>
-      <div class="occ-grid"><table class="occ-t" id="occTable"></table></div>
     </div>
 
     <div class="sheet-block">
@@ -613,17 +639,56 @@ $("#sheetBtn").onclick=()=>{
   requestAnimationFrame(()=>$("#step3").scrollIntoView({behavior:"smooth",block:"start"}));
 };
 
+document.addEventListener("click",e=>{
+  if(e.target.closest("#occToggle")){
+    const d=$("#occDetail"), c=$("#occCaret");
+    const open=d.classList.toggle("hidden")===false;
+    if(c) c.textContent = open ? "▼ 접기" : "▶ 펼치기";
+  }
+});
+
 function od(on,color){ return `<i class="od" style="background:${on?color:'var(--none-bg)'}"></i>`; }
 function shorten(n){ return n.length>8?n.slice(0,8)+"…":n; }
 
 function buildSheet(){
   const comps=state.picked.map(i=>state.pool[i]);
-  let html=`<thead><tr><th class="kw">키워드</th><th class="us">${state.target.name}<br><span style="font-size:9.5px;color:var(--mint);">우리 잠재고객</span></th>`;
+  const self=state.selfData; // 영업 대상 (점수·kw 보유, 없을 수 있음)
+
+  // ===== 막대 차트: 영업대상 + 경쟁사를 한 판에 놓고 상대화 =====
+  const all=[];
+  if(self) all.push({name:self.name, score:self.score, us:true});
+  comps.forEach(c=>all.push({name:c.name, score:c.score, us:false}));
+  all.sort((a,b)=>b.score-a.score);
+  const maxScore=Math.max(1, ...all.map(x=>x.score)); // 1위 기준(0 방지)
+  let barHtml="";
+  all.forEach((x,i)=>{
+    const rel=Math.round((x.score/maxScore)*100);
+    barHtml+=`
+      <div class="bar-row ${x.us?'is-us':''} ${i===0?'rank1':''}">
+        <div class="bar-name">${x.us?'⭐ ':''}${x.name}${x.us?'<span class="bar-ustag">잠재고객</span>':''}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${rel}%"></div></div>
+        <div class="bar-val">${rel}<span class="abs">(${x.score})</span></div>
+      </div>`;
+  });
+  if(!self){
+    barHtml+=`<p class="sub" style="margin:6px 0 0;color:var(--none);">※ 영업 대상(${state.target.name})은 입력 키워드 1페이지에서 노출이 잡히지 않아 막대에서 빠졌습니다.</p>`;
+  }
+  $("#barChart").innerHTML=barHtml;
+
+  // ===== 키워드별 상세 표 (영업대상 점 채움) =====
+  let html=`<thead><tr><th class="kw">키워드</th>`;
+  if(self) html+=`<th class="us">${shorten(self.name)}<br><span style="font-size:9.5px;color:var(--mint);">우리 잠재고객</span></th>`;
+  else html+=`<th class="us">${shorten(state.target.name)}<br><span style="font-size:9.5px;color:var(--none);">미노출</span></th>`;
   comps.forEach(c=>{ html+=`<th>${shorten(c.name)}</th>`; });
   html+=`</tr></thead><tbody>`;
   state.keywords.forEach((kw,ki)=>{
     html+=`<tr><td class="kw">${kw}</td>`;
-    html+=`<td><span style="font-size:10px;color:var(--none);">직접 확인</span></td>`;
+    if(self){
+      const ss=self.kw[ki]||{};
+      html+=`<td><span class="ocell">${od(ss.place,'var(--place)')}${od(ss.blog,'var(--blog)')}${od(ss.web,'var(--web)')}</span></td>`;
+    } else {
+      html+=`<td><span style="font-size:10px;color:var(--none);">미노출</span></td>`;
+    }
     comps.forEach(c=>{
       const s=c.kw[ki]||{};
       html+=`<td><span class="ocell">${od(s.place,'var(--place)')}${od(s.blog,'var(--blog)')}${od(s.web,'var(--web)')}</span></td>`;
@@ -638,12 +703,24 @@ function buildSheet(){
     fb.appendChild(buildFindClinic(c.name, !!c.us, idx));
   });
 
-  const top=comps[0];
+  const top=all[0]; // 막대 1위 (영업대상일 수도)
   const totalKw=state.keywords.length;
+  const selfLine = self
+    ? `우리 잠재고객 ${self.name}은(는) 상대 점유 ${Math.round((self.score/maxScore)*100)}(절대 ${self.score})로 ${top.us&&top.name===self.name?'이 시장을 선도':'추격 위치'}입니다.`
+    : `우리 잠재고객 ${state.target.name}은(는) 해당 키워드 1페이지에 거의 노출되지 않았습니다.`;
+  let diag;
+  if(!self){
+    diag=`${state.target.name}은(는) 입력 키워드 1페이지에 거의 노출되지 않았습니다. 노출 기반 자체를 새로 만드는 단계입니다.`;
+  } else {
+    const rel=Math.round((self.score/maxScore)*100);
+    if(rel>=90) diag=`${state.target.name}은(는) 이 키워드 시장에서 이미 최상위 노출을 점유하고 있습니다. 신규 노출 확대보다, 점유를 메시지·전환으로 잠그는 단계입니다.`;
+    else if(rel>=50) diag=`${state.target.name}은(는) 상위권과 겨루는 중위 노출입니다. 특정 키워드에서 밀리는 지점을 메워 격차를 좁히는 단계입니다.`;
+    else diag=`${state.target.name}은(는) 같은 키워드 화면에서 노출 점유가 약합니다. 노출량 자체보다, 어떤 메시지로 기억될지가 비어 있는 것이 핵심입니다.`;
+  }
   $("#verdictText").value=
-`[현황] "${state.keywords.join(', ')}" 검색 시장에서 ${top.name}이(가) 가장 넓게 노출을 점유하고 있습니다 (플레이스 ${top.occ.place}회·블로그 ${top.occ.blog}회·웹 ${top.occ.web}회 / 총 ${totalKw}개 키워드 기준).
+`[현황] "${state.keywords.join(', ')}" 검색 시장에서 ${top.name}이(가) 가장 넓게 노출을 점유하고 있습니다 (총 ${totalKw}개 키워드 기준, 상대 점유 100). ${selfLine}
 
-[진단] ${state.target.name}은(는) 같은 키워드 화면에서 노출 점유가 약합니다. 노출량 자체보다, 어떤 메시지로 기억될지가 비어 있는 것이 핵심입니다.
+[진단] ${diag}
 
 [제안] `;
 }
