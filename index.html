@@ -109,6 +109,30 @@
   .pl-item .pl-rank{font-size:11px; color:var(--muted); min-width:42px;}
   .pl-item .pl-del{cursor:pointer; color:var(--none); font-size:16px; padding:0 4px; border:none; background:none;}
   .pl-item .pl-del:hover{color:#d66;}
+  /* 파워링크 누적(키워드별) */
+  .pl-kwrow{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:12px;}
+  .pl-kwsel{border:1px solid var(--line); border-radius:8px; padding:7px 9px; font-size:12.5px; font-family:inherit; color:var(--ink); background:#fff; min-width:160px;}
+  .pl-kwsel:focus{outline:none; border-color:var(--navy-2);}
+  .pl-kwlabel{font-size:12px; color:var(--muted);}
+  .pl-stack{display:flex; flex-wrap:wrap; gap:7px; margin-top:10px;}
+  .pl-stack:empty{display:none;}
+  .pl-kwchip{display:inline-flex; align-items:center; gap:6px; background:#F2EFFC; border:1px solid #DAD2F2; color:var(--navy-2); font-size:11.5px; font-weight:600; border-radius:14px; padding:5px 10px;}
+  .pl-kwchip .pl-kwx{cursor:pointer; color:#9b90c8; font-size:13px; line-height:1;}
+  .pl-kwchip .pl-kwx:hover{color:#d66;}
+  .pl-confirm-kw{margin-top:10px;}
+  /* 종합 진단 패널 */
+  .pl-summary{margin-top:16px; border:1px solid #DAD2F2; border-radius:12px; background:#FBFAFF; padding:14px 15px;}
+  .pl-summary h4{margin:0 0 4px; font-size:13.5px; color:var(--navy);}
+  .pl-summary .pl-sum-note{font-size:11.5px; color:var(--warn); background:var(--warn-bg); border-radius:7px; padding:6px 9px; margin:8px 0 12px; line-height:1.5;}
+  .pl-sum-item{display:flex; align-items:center; gap:9px; padding:7px 0; border-bottom:1px dashed var(--line);}
+  .pl-sum-item:last-child{border-bottom:none;}
+  .pl-sum-bar-wrap{flex:1; min-width:0;}
+  .pl-sum-name{font-size:12.5px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:6px; margin-bottom:4px;}
+  .pl-sum-cross{font-size:10px; font-weight:600; color:var(--mint-deep); background:#E5F8F3; border-radius:5px; padding:2px 6px;}
+  .pl-sum-bar{height:9px; border-radius:5px; background:#E2E6EC; overflow:hidden;}
+  .pl-sum-bar > i{display:block; height:100%; background:linear-gradient(90deg,#7A6FD4,#1B3A6B); border-radius:5px;}
+  .pl-sum-cov{font-size:11px; color:var(--muted); min-width:62px; text-align:right;}
+  .pl-sum-actions{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
   .occ-ad{background:#FFF1E6; color:#C2622A;}
   .ad-badge{display:inline-block; font-size:9.5px; font-weight:700; color:#fff; background:#E08A3C; border-radius:4px; padding:1px 5px; margin-left:6px; vertical-align:middle;}
   .occ-place{background:#E8F6E0; color:#1a7a00;}
@@ -276,8 +300,12 @@
       <div class="pl-head">
         <div>
           <div class="pl-title">📷 파워링크(검색광고) 캡처 분석 <span class="pl-beta">선택</span></div>
-          <div class="pl-desc">네이버에서 키워드를 검색해 <b>광고 영역</b>을 캡처한 뒤 여기에 끌어다 놓으면(또는 클릭해 선택), 광고 중인 병원을 자동으로 읽어 후보에 <b>“광고 집행”</b> 표식으로 추가합니다. 블로그는 안 해도 광고로 승부하는 경쟁사를 잡아냅니다.</div>
+          <div class="pl-desc">네이버에서 키워드를 검색해 <b>광고 영역</b>을 캡처한 뒤 여기에 끌어다 놓으면(또는 클릭해 선택), 광고 중인 병원을 자동으로 읽어 후보에 <b>“광고 집행”</b> 표식으로 추가합니다. <b>여러 키워드의 캡처를 누적</b>하면, 어느 병원이 여러 키워드에 걸쳐 광고하는지를 종합해 알려줍니다. 블로그는 안 해도 광고로 승부하는 경쟁사를 잡아냅니다.</div>
         </div>
+      </div>
+      <div class="pl-kwrow">
+        <span class="pl-kwlabel">이 캡처는 어느 키워드 검색결과인가요?</span>
+        <select class="pl-kwsel" id="plKwSel"><option value="">— STEP 1 키워드 먼저 입력 —</option></select>
       </div>
       <div class="pl-drop" id="plDrop">
         <input type="file" id="plFile" accept="image/*" multiple hidden>
@@ -289,11 +317,14 @@
       <div id="plReview" class="hidden">
         <div class="pl-review-head">읽어낸 광고 병원 — <b>틀린 글자를 고치거나, 광고가 아닌 항목은 ✕로 빼주세요.</b></div>
         <div id="plList"></div>
-        <div style="margin-top:10px;">
-          <button class="btn btn-mint btn-sm" id="plConfirm">확인 → 후보에 합류</button>
+        <div class="pl-confirm-kw">
+          <button class="btn btn-mint btn-sm" id="plAddKw">이 키워드에 누적 ↓</button>
+          <button class="btn btn-ghost btn-sm" id="plConfirm">바로 후보에 합류</button>
           <button class="btn btn-ghost btn-sm" id="plCancel">취소</button>
         </div>
       </div>
+      <div class="pl-stack" id="plStack"></div>
+      <div id="plSummary"></div>
     </div>
 
     <div id="selfBox"></div>
@@ -583,6 +614,7 @@ $("#runBtn").onclick=async()=>{
   state.pool=scorePool(result.pool); state.picked=[];
   state.selfData = result.selfData ? scoreOne(result.selfData) : null;
   renderPool();
+  fillPLKwSelect();
   $("#step2").classList.remove("hidden");
   btn.disabled=false; btn.textContent=orig;
   requestAnimationFrame(()=>$("#step2").scrollIntoView({behavior:"smooth",block:"start"}));
@@ -638,7 +670,7 @@ function renderPool(){
     if(c.occ.place) occTags.push(`<span class="occ-tag occ-place">플레이스 ${c.occ.place}회</span>`);
     if(c.occ.blog)  occTags.push(`<span class="occ-tag occ-blog">블로그 ${c.occ.blog}회</span>`);
     if(c.occ.web)   occTags.push(`<span class="occ-tag occ-web">웹 ${c.occ.web}회</span>`);
-    if(c.ad)        occTags.push(`<span class="occ-tag occ-ad">파워링크 집행</span>`);
+    if(c.ad)        occTags.push(`<span class="occ-tag occ-ad">${c.adCover?`파워링크 ${c.adCover}개 키워드`:"파워링크 집행"}</span>`);
     const kwHits=Object.keys(c.kw).map(ki=>`<span class="kwhit">${state.keywords[ki]}</span>`).join("");
     const row=el("div","cand"+(picked?" picked":""));
     row.innerHTML=`
@@ -805,6 +837,143 @@ $("#plConfirm").onclick=()=>{
   plCandidates=[];
   renderPool();
 };
+
+/* ===== 파워링크 캡처 누적 → 종합 진단 ===== */
+// plByKeyword = { 키워드: [{name}, ...] }  (키워드별 광고 관측 병원 목록)
+let plByKeyword={};
+
+// STEP 2 진입 시 드롭다운을 현재 키워드로 채움
+function fillPLKwSelect(){
+  const sel=$("#plKwSel"); if(!sel) return;
+  const prev=sel.value;
+  sel.innerHTML="";
+  if(state.keywords.length===0){
+    const o=el("option",null,"— STEP 1 키워드 먼저 입력 —"); o.value=""; sel.appendChild(o);
+    return;
+  }
+  const ph=el("option",null,"— 키워드 선택 —"); ph.value=""; sel.appendChild(ph);
+  state.keywords.forEach(k=>{
+    const o=el("option",null,k); o.value=k;
+    if(k===prev) o.selected=true;
+    sel.appendChild(o);
+  });
+}
+
+// "이 키워드에 누적" — 검수한 plCandidates를 선택 키워드 바구니에 저장
+$("#plAddKw").onclick=()=>{
+  const kw=$("#plKwSel").value;
+  if(!kw){ plStatus.textContent="먼저 위에서 ‘어느 키워드 검색결과인지’를 골라주세요."; return; }
+  if(plCandidates.length===0){ plStatus.textContent="누적할 광고 병원이 없습니다."; return; }
+  // 같은 키워드 안에서 이름 중복은 합침
+  const bucket=plByKeyword[kw]||[];
+  plCandidates.forEach(pc=>{
+    if(!bucket.some(b=>nameSimilar(b.name, pc.name))) bucket.push({name:pc.name});
+  });
+  plByKeyword[kw]=bucket;
+  plReview.classList.add("hidden");
+  plCandidates=[];
+  plStatus.textContent=`“${kw}” 광고 병원 ${bucket.length}곳을 누적했습니다. 다른 키워드 캡처도 같은 방식으로 쌓아보세요.`;
+  renderPLStack();
+  renderPLSummary();
+};
+
+// 누적된 키워드 칩들
+function renderPLStack(){
+  const stack=$("#plStack"); if(!stack) return;
+  stack.innerHTML="";
+  Object.keys(plByKeyword).forEach(kw=>{
+    const n=plByKeyword[kw].length;
+    const chip=el("span","pl-kwchip",`${kw} · 광고 ${n}곳`);
+    const x=el("span","pl-kwx","✕");
+    x.onclick=()=>{ delete plByKeyword[kw]; renderPLStack(); renderPLSummary(); };
+    chip.appendChild(x);
+    stack.appendChild(chip);
+  });
+}
+
+// 병원별 키워드 커버리지 집계 → [{name, cover, kws:[]}], cover 내림차순
+function aggregatePLCoverage(){
+  const kwList=Object.keys(plByKeyword);
+  const map=[]; // {name, kws:Set}
+  kwList.forEach(kw=>{
+    plByKeyword[kw].forEach(c=>{
+      let hit=map.find(m=>nameSimilar(m.name, c.name));
+      if(!hit){ hit={name:c.name, kws:new Set()}; map.push(hit); }
+      hit.kws.add(kw);
+    });
+  });
+  return map
+    .map(m=>({name:m.name, cover:m.kws.size, kws:[...m.kws]}))
+    .sort((a,b)=>b.cover-a.cover || a.name.localeCompare(b.name));
+}
+
+// 종합 진단 패널
+function renderPLSummary(){
+  const box=$("#plSummary"); if(!box) return;
+  const kwCount=Object.keys(plByKeyword).length;
+  if(kwCount===0){ box.innerHTML=""; return; }
+  const agg=aggregatePLCoverage();
+  if(agg.length===0){ box.innerHTML=""; return; }
+  const maxCover=agg[0].cover||1;
+
+  let rows="";
+  agg.slice(0,12).forEach(a=>{
+    const pct=Math.round((a.cover/maxCover)*100);
+    // 검색결과(플레이스/블로그) 강자와 교차 여부
+    const inPool=state.pool.find(c=>nameSimilar(c.name, a.name) && !c.adOnly && c.score>0);
+    const cross=inPool?`<span class="pl-sum-cross">검색노출도 강함</span>`:"";
+    rows+=`<div class="pl-sum-item">
+      <div class="pl-sum-bar-wrap">
+        <div class="pl-sum-name">${a.name}${cross}</div>
+        <div class="pl-sum-bar"><i style="width:${pct}%"></i></div>
+      </div>
+      <div class="pl-sum-cov">${a.cover}/${kwCount} 키워드</div>
+    </div>`;
+  });
+
+  // 추정 상위(커버리지 2 이상 우선, 없으면 상위 3)
+  const strong=agg.filter(a=>a.cover>=2);
+  const picks=(strong.length?strong:agg).slice(0,5);
+  const names=picks.map(p=>p.name).join(" · ");
+
+  box.innerHTML=`
+    <div class="pl-summary">
+      <h4>📊 누적 종합 — 여러 키워드에 걸쳐 광고가 관측된 곳</h4>
+      <div class="pl-sum-note">⚠️ 이 목록은 올려주신 ${kwCount}개 키워드 캡처에서 <b>눈에 관측된 광고를 종합한 추정</b>입니다. 캡처 시점·기기·지역에 따라 실제 집행과 다를 수 있습니다. 단정이 아니라 ‘후보를 좁히는 단서’로 봐주세요.</div>
+      ${rows}
+      <p class="sub" style="margin:12px 0 0;">여러 키워드에서 광고가 가장 자주 관측된 곳은 <b>${names}</b>(으)로 추정됩니다. 후보군에 넣으시겠습니까?</p>
+      <div class="pl-sum-actions">
+        <button class="btn btn-mint btn-sm" id="plSumAll">추정 상위 전체 넣기</button>
+        <button class="btn btn-ghost btn-sm" id="plSumPick">하나씩 고르기</button>
+      </div>
+    </div>`;
+
+  $("#plSumAll").onclick=()=>mergePLToPool(picks);
+  $("#plSumPick").onclick=()=>{
+    // 검수 화면으로: 추정 상위를 plCandidates로 올려 다시 보여줌
+    plCandidates=picks.map(p=>({name:p.name, rank:0}));
+    renderPLReview();
+    plStatus.textContent="아래에서 넣을 병원만 남기고 ‘바로 후보에 합류’를 눌러주세요.";
+  };
+}
+
+// 종합 추정 병원들을 후보 풀에 반영 (커버리지 정보 포함)
+function mergePLToPool(picks){
+  let added=0, tagged=0;
+  picks.forEach(p=>{
+    const hit=state.pool.find(c=>nameSimilar(c.name, p.name));
+    if(hit){ if(!hit.ad){ hit.ad=true; tagged++; } hit.adCover=p.cover; }
+    else {
+      state.pool.push({
+        name:p.name, addr:"", cat:`광고 ${p.cover}개 키워드`, kw:{}, occ:{place:0,blog:0,web:0},
+        score:0, ad:true, adOnly:true, adCover:p.cover
+      });
+      added++;
+    }
+  });
+  plStatus.textContent=`종합 추정에서 광고 표식 ${tagged}곳, 새 경쟁사 ${added}곳을 후보에 반영했습니다.`;
+  renderPool();
+}
 
 $("#researchBtn").onclick=()=>{
   if(state.picked.length===0){ alert("먼저 경쟁사를 선택하세요."); return; }
@@ -999,6 +1168,8 @@ function renderCard(card, lines){
 $("#resetBtn").onclick=()=>{ state.pool=[]; state.picked=[]; state.selfData=null;
   const sb=$("#selfBox"); if(sb) sb.innerHTML="";
   plCandidates=[]; if(plReview) plReview.classList.add("hidden");
+  plByKeyword={}; renderPLStack(); const ps=$("#plSummary"); if(ps) ps.innerHTML="";
+  const pk=$("#plKwSel"); if(pk) pk.selectedIndex=0;
   if(plStatus) plStatus.textContent=""; if(plFile) plFile.value="";
   $("#step2").classList.add("hidden"); $("#step3").classList.add("hidden");
   window.scrollTo({top:0,behavior:"smooth"}); };
