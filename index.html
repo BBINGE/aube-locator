@@ -94,6 +94,23 @@
   .cand .meta{font-size:11.5px; color:var(--muted); margin-top:3px;}
   .occ{display:flex; flex-wrap:wrap; gap:5px; margin-top:7px;}
   .occ-tag{font-size:10.5px; padding:2px 8px; border-radius:20px; font-weight:600;}
+  .pl-box{border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:16px; background:#FBFAFF;}
+  .pl-title{font-size:13.5px; font-weight:800; color:var(--navy);}
+  .pl-beta{font-size:10px; font-weight:700; color:#fff; background:var(--navy-2); border-radius:5px; padding:1px 6px; margin-left:4px; vertical-align:middle;}
+  .pl-desc{font-size:12px; color:var(--muted); margin-top:5px; line-height:1.5;}
+  .pl-drop{margin-top:12px; border:2px dashed #CFC9EC; border-radius:10px; padding:22px 14px; text-align:center; cursor:pointer; transition:background .15s,border-color .15s;}
+  .pl-drop:hover, .pl-drop.dragover{background:#F2EFFC; border-color:var(--navy-2);}
+  .pl-drop-inner span{font-size:12.5px; color:var(--muted);}
+  .pl-status{font-size:12px; color:var(--navy-2); margin-top:8px; font-weight:600; min-height:16px;}
+  .pl-review-head{font-size:12px; color:var(--ink); margin:14px 0 8px;}
+  .pl-item{display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px dashed var(--line);}
+  .pl-item input.pl-name{flex:1; border:1px solid var(--line); border-radius:7px; padding:6px 9px; font-size:13px; font-family:inherit;}
+  .pl-item input.pl-name:focus{outline:none; border-color:var(--navy-2);}
+  .pl-item .pl-rank{font-size:11px; color:var(--muted); min-width:42px;}
+  .pl-item .pl-del{cursor:pointer; color:var(--none); font-size:16px; padding:0 4px; border:none; background:none;}
+  .pl-item .pl-del:hover{color:#d66;}
+  .occ-ad{background:#FFF1E6; color:#C2622A;}
+  .ad-badge{display:inline-block; font-size:9.5px; font-weight:700; color:#fff; background:#E08A3C; border-radius:4px; padding:1px 5px; margin-left:6px; vertical-align:middle;}
   .occ-place{background:#E8F6E0; color:#1a7a00;}
   .occ-blog{background:#EAF7E4; color:#178000;}
   .occ-web{background:#EAEEFF; color:#2A3Fb0;}
@@ -198,6 +215,7 @@
     #barChart{break-inside:avoid;}
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
 <header>
@@ -253,6 +271,31 @@
       <button class="btn btn-ghost btn-sm" id="researchBtn">선택 병원 플레이스 열기</button>
       <button class="btn btn-mint btn-sm" id="sheetBtn">결과지 만들기 →</button>
     </div>
+
+    <div class="pl-box">
+      <div class="pl-head">
+        <div>
+          <div class="pl-title">📷 파워링크(검색광고) 캡처 분석 <span class="pl-beta">선택</span></div>
+          <div class="pl-desc">네이버에서 키워드를 검색해 <b>광고 영역</b>을 캡처한 뒤 여기에 끌어다 놓으면(또는 클릭해 선택), 광고 중인 병원을 자동으로 읽어 후보에 <b>“광고 집행”</b> 표식으로 추가합니다. 블로그는 안 해도 광고로 승부하는 경쟁사를 잡아냅니다.</div>
+        </div>
+      </div>
+      <div class="pl-drop" id="plDrop">
+        <input type="file" id="plFile" accept="image/*" multiple hidden>
+        <div class="pl-drop-inner">
+          <span id="plDropText">여기로 캡처 이미지를 끌어다 놓거나 클릭해서 선택</span>
+          <div class="pl-status" id="plStatus"></div>
+        </div>
+      </div>
+      <div id="plReview" class="hidden">
+        <div class="pl-review-head">읽어낸 광고 병원 — <b>틀린 글자를 고치거나, 광고가 아닌 항목은 ✕로 빼주세요.</b></div>
+        <div id="plList"></div>
+        <div style="margin-top:10px;">
+          <button class="btn btn-mint btn-sm" id="plConfirm">확인 → 후보에 합류</button>
+          <button class="btn btn-ghost btn-sm" id="plCancel">취소</button>
+        </div>
+      </div>
+    </div>
+
     <div id="selfBox"></div>
     <div id="pool"></div>
   </div>
@@ -595,13 +638,14 @@ function renderPool(){
     if(c.occ.place) occTags.push(`<span class="occ-tag occ-place">플레이스 ${c.occ.place}회</span>`);
     if(c.occ.blog)  occTags.push(`<span class="occ-tag occ-blog">블로그 ${c.occ.blog}회</span>`);
     if(c.occ.web)   occTags.push(`<span class="occ-tag occ-web">웹 ${c.occ.web}회</span>`);
+    if(c.ad)        occTags.push(`<span class="occ-tag occ-ad">파워링크 집행</span>`);
     const kwHits=Object.keys(c.kw).map(ki=>`<span class="kwhit">${state.keywords[ki]}</span>`).join("");
     const row=el("div","cand"+(picked?" picked":""));
     row.innerHTML=`
       <div class="cand-top">
         <div class="rank">${i+1}</div>
         <div>
-          <div class="nm">${c.name}</div>
+          <div class="nm">${c.name}${c.ad?'<span class="ad-badge">광고</span>':''}</div>
           <div class="meta">${c.cat||"병원"} · ${c.addr||""}</div>
           <div class="occ">${occTags.join("")}</div>
           <div style="margin-top:5px;">${kwHits}</div>
@@ -624,6 +668,143 @@ function togglePick(i){
   else { if(state.picked.length>=3){ alert("경쟁사는 최대 3곳까지 비교가 깔끔합니다."); return;} state.picked.push(i); }
   renderPool();
 }
+
+/* ===================== 파워링크 캡처 OCR ===================== */
+const plDrop=$("#plDrop"), plFile=$("#plFile"), plStatus=$("#plStatus"),
+      plReview=$("#plReview"), plList=$("#plList"), plDropText=$("#plDropText");
+let plCandidates=[]; // {name, rank}
+
+// 클릭/드래그로 파일 받기
+plDrop.addEventListener("click",()=>plFile.click());
+plFile.addEventListener("change",e=>{ if(e.target.files.length) handlePLFiles(e.target.files); });
+["dragover","dragenter"].forEach(ev=>plDrop.addEventListener(ev,e=>{e.preventDefault(); plDrop.classList.add("dragover");}));
+["dragleave","drop"].forEach(ev=>plDrop.addEventListener(ev,e=>{e.preventDefault(); plDrop.classList.remove("dragover");}));
+plDrop.addEventListener("drop",e=>{ if(e.dataTransfer.files.length) handlePLFiles(e.dataTransfer.files); });
+
+// 이미지 전처리: 3배 확대 + 흑백 + 대비 (서버 테스트와 동일 전략)
+function preprocessImage(img){
+  const scale=3;
+  const cv=document.createElement("canvas");
+  cv.width=img.naturalWidth*scale; cv.height=img.naturalHeight*scale;
+  const ctx=cv.getContext("2d");
+  ctx.drawImage(img,0,0,cv.width,cv.height);
+  const d=ctx.getImageData(0,0,cv.width,cv.height);
+  const p=d.data;
+  for(let i=0;i<p.length;i+=4){
+    let g=0.299*p[i]+0.587*p[i+1]+0.114*p[i+2];   // 흑백
+    g=((g/255-0.5)*1.8+0.5)*255;                   // 대비 1.8
+    g=Math.max(0,Math.min(255,g));
+    p[i]=p[i+1]=p[i+2]=g;
+  }
+  ctx.putImageData(d,0,0);
+  return cv;
+}
+
+async function handlePLFiles(files){
+  plStatus.textContent="이미지 읽는 중… (처음엔 한글 인식 데이터를 받느라 10~20초 걸릴 수 있어요)";
+  plDropText.textContent="분석 중…";
+  let allText="";
+  try{
+    for(const f of files){
+      if(!f.type.startsWith("image/")) continue;
+      const img=await loadImage(f);
+      const canvas=preprocessImage(img);
+      const { data:{ text } }=await Tesseract.recognize(canvas,"kor+eng");
+      allText+="\n"+text;
+    }
+  }catch(err){
+    plStatus.textContent="인식 실패: "+err.message+" — 인터넷 연결을 확인하거나 다시 시도해주세요.";
+    plDropText.textContent="여기로 캡처 이미지를 끌어다 놓거나 클릭해서 선택";
+    return;
+  }
+  plCandidates=extractClinics(allText);
+  plDropText.textContent="여기로 캡처 이미지를 끌어다 놓거나 클릭해서 선택";
+  if(plCandidates.length===0){
+    plStatus.textContent="병원 이름을 찾지 못했어요. 광고 영역이 또렷하게 나오게 다시 캡처해보세요.";
+    return;
+  }
+  plStatus.textContent=`${plCandidates.length}개 광고 병원을 읽었습니다. 아래에서 확인하세요.`;
+  renderPLReview();
+}
+
+function loadImage(file){
+  return new Promise((res,rej)=>{
+    const img=new Image();
+    img.onload=()=>res(img); img.onerror=rej;
+    img.src=URL.createObjectURL(file);
+  });
+}
+
+// OCR 텍스트에서 병원명만 골라내기
+function extractClinics(text){
+  const lines=text.split("\n").map(l=>l.trim()).filter(Boolean);
+  const found=[]; const seen=new Set();
+  const suffixWord="(한의원|한방병원|한방의원|병원|의원|치과|클리닉)";
+  const reTail=new RegExp("([가-힣A-Za-z0-9]{2,12}"+suffixWord+")\\s*$");
+  lines.forEach(line=>{
+    let s=line.replace(/^[®@&|.\s]+/,"").replace(/\s{2,}/g," ").trim();
+    // 줄 끝의 "수식어+병원명" 중 순수 병원명 토큰만 추출
+    const m=s.match(reTail);
+    if(!m) return;
+    let c=m[1].trim();
+    if(c.length<3||c.length>16) return;
+    if(/^[0-9]+$/.test(c)) return;
+    const key=c.replace(/\s/g,"");
+    if(seen.has(key)) return;
+    seen.add(key); found.push({name:c, rank:found.length+1});
+  });
+  return found;
+}
+
+function renderPLReview(){
+  plReview.classList.remove("hidden");
+  plList.innerHTML="";
+  plCandidates.forEach((c,i)=>{
+    const row=el("div","pl-item");
+    row.innerHTML=`
+      <span class="pl-rank">광고 ${i+1}위</span>
+      <input type="text" class="pl-name" value="${c.name.replace(/"/g,'&quot;')}">
+      <button class="pl-del" title="광고 아님/삭제">✕</button>`;
+    row.querySelector(".pl-del").onclick=()=>{ plCandidates.splice(i,1); renderPLReview(); };
+    row.querySelector(".pl-name").oninput=e=>{ plCandidates[i].name=e.target.value; };
+    plList.appendChild(row);
+  });
+  if(plCandidates.length===0) plReview.classList.add("hidden");
+}
+
+$("#plCancel").onclick=()=>{ plReview.classList.add("hidden"); plCandidates=[]; plStatus.textContent=""; };
+
+// 이름 유사도 (간단 포함 매칭)
+function nameSimilar(a,b){
+  const x=bare(a), y=bare(b);
+  if(!x||!y) return false;
+  if(x===y) return true;
+  if(x.includes(y)||y.includes(x)) return true;
+  // 앞 4글자 일치 (OCR 오인식 흡수)
+  if(x.length>=4 && y.length>=4 && x.slice(0,4)===y.slice(0,4)) return true;
+  return false;
+}
+
+$("#plConfirm").onclick=()=>{
+  let added=0, tagged=0;
+  plCandidates.forEach(pc=>{
+    // 기존 후보와 매칭되면 광고 플래그만
+    const hit=state.pool.find(c=>nameSimilar(c.name, pc.name));
+    if(hit){ if(!hit.ad){ hit.ad=true; tagged++; } }
+    else {
+      // 새 광고 전용 경쟁사 추가 (노출 점수는 광고 기반 별도)
+      state.pool.push({
+        name:pc.name, addr:"", cat:"광고 발견", kw:{}, occ:{place:0,blog:0,web:0},
+        score:0, ad:true, adOnly:true
+      });
+      added++;
+    }
+  });
+  plReview.classList.add("hidden");
+  plStatus.textContent=`광고 표식 ${tagged}곳, 새 경쟁사 ${added}곳을 후보에 반영했습니다.`;
+  plCandidates=[];
+  renderPool();
+};
 
 $("#researchBtn").onclick=()=>{
   if(state.picked.length===0){ alert("먼저 경쟁사를 선택하세요."); return; }
@@ -817,6 +998,8 @@ function renderCard(card, lines){
 
 $("#resetBtn").onclick=()=>{ state.pool=[]; state.picked=[]; state.selfData=null;
   const sb=$("#selfBox"); if(sb) sb.innerHTML="";
+  plCandidates=[]; if(plReview) plReview.classList.add("hidden");
+  if(plStatus) plStatus.textContent=""; if(plFile) plFile.value="";
   $("#step2").classList.add("hidden"); $("#step3").classList.add("hidden");
   window.scrollTo({top:0,behavior:"smooth"}); };
 </script>
