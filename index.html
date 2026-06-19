@@ -257,7 +257,7 @@
 
   <div class="card" id="step1">
     <h2><span class="step-no">1</span>영업 대상 + 핵심 키워드</h2>
-    <p class="sub">키워드는 "그 병원의 환자가 검색할 말"입니다. 2~3개 넣으면, 각 키워드의 검색 1페이지를 누가(플레이스·블로그·웹) 점유하는지 훑어 경쟁 후보를 모읍니다.</p>
+    <p class="sub">환자가 실제로 검색할 말을 2~3개 넣으세요. <b>"예시 키워드 보기"</b>를 누르면 과목별 추천이 깔립니다. 넣고 <b>[1페이지 점유 분석]</b>을 누르면 경쟁 후보가 모입니다.</p>
     <div class="row">
       <div><label class="fld">영업 대상 병원명</label><input type="text" id="targetName" placeholder="예: 가나한의원"></div>
       <div><label class="fld">지역 / 진료과</label><input type="text" id="targetArea" placeholder="예: 평택 / 한의원"></div>
@@ -281,13 +281,13 @@
     </div>
     <div class="notice notice-key" style="margin-top:14px;">
       <span>ℹ️</span>
-      <div>네이버 검색 API가 주는 건 <b>플레이스·블로그·웹문서</b> 노출입니다. 리뷰 수, SNS·카페 채널 보유, 광고(파워링크) 집행은 API로 안 나오므로 — 경쟁사를 추린 뒤 <b>플레이스 상세를 직접 확인</b>해 결과지에 적습니다.</div>
+      <div>이 분석은 네이버 <b>플레이스에 등록된 병원</b>이 기준입니다. 플레이스 없이 <b>블로그·광고로만</b> 노출되는 곳은 후보에서 빠질 수 있으니, 미팅 전 키워드를 직접 1~2개 검색해 교차 확인하세요. 리뷰 수·SNS 채널·광고 집행은 API로 안 나오므로 <b>STEP3에서 직접</b> 채웁니다.</div>
     </div>
   </div>
 
   <div class="card hidden" id="step2">
     <h2><span class="step-no">2</span>경쟁 후보 검수 — 진짜 경쟁사 2~3곳 확정</h2>
-    <p class="sub">점수 = <b>여러 키워드에 걸친 노출 빈도 + 순위 가중치</b>. 여러 키워드에서 자주·위에 뜰수록 높습니다. 점수는 추천일 뿐, 진짜 경쟁사는 직접 고르세요.</p>
+    <p class="sub">점수가 높을수록 여러 키워드에서 자주·위에 뜬 곳입니다. 점수는 <b>후보 추천</b>일 뿐이니, 실제로 겨눌 경쟁사 <b>2~3곳을 직접 선택</b>하세요.</p>
     <div class="toolbar">
       <span class="count-pill" id="poolCount">후보 0곳</span>
       <span class="count-pill" id="pickCount" style="border-color:var(--mint); color:var(--mint-deep);">선택 0곳</span>
@@ -300,7 +300,7 @@
       <div class="pl-head">
         <div>
           <div class="pl-title">📷 파워링크(검색광고) 캡처 분석 <span class="pl-beta">선택</span></div>
-          <div class="pl-desc">네이버에서 키워드를 검색해 <b>광고 영역</b>을 캡처한 뒤 여기에 끌어다 놓으면(또는 클릭해 선택), 광고 중인 병원을 자동으로 읽어 후보에 <b>“광고 집행”</b> 표식으로 추가합니다. <b>여러 키워드의 캡처를 누적</b>하면, 어느 병원이 여러 키워드에 걸쳐 광고하는지를 종합해 알려줍니다. 블로그는 안 해도 광고로 승부하는 경쟁사를 잡아냅니다.</div>
+          <div class="pl-desc">네이버에서 키워드를 검색해 <b>광고 영역</b>을 캡처하고, <b>어느 키워드인지 고른 뒤</b> 끌어다 놓으세요. 광고 중인 병원을 자동으로 읽어 <b>"광고 집행"</b> 표식을 답니다. <b>여러 키워드를 누적</b>하면 광고에 진심인 경쟁사가 드러납니다.</div>
         </div>
       </div>
       <div class="pl-kwrow">
@@ -336,14 +336,14 @@
 
     <div class="sheet-block">
       <div class="sheet-h">시장 노출 점유 — 한눈 비교 <span class="auto-pill">자동</span></div>
-      <p class="sub" style="margin:0 0 12px;">입력한 키워드 시장에서 누가 더 넓게 노출을 쥐고 있는지. <b>막대 = 이 판 1위 대비 상대 점유</b> (괄호 안은 절대 점수).</p>
+      <p class="sub" style="margin:0 0 12px;">이 지역·과목 검색에서 어느 병원이 더 넓게 노출되고 있는지를 한눈에 보여줍니다. <b>막대가 길수록 검색에서 더 자주, 더 위에 노출</b>됩니다.</p>
       <div id="barChart"></div>
     </div>
 
     <div class="sheet-block">
       <div class="sheet-h" style="cursor:pointer;" id="occToggle">키워드별 상세 점유 <span class="auto-pill">자동</span> <span id="occCaret" style="font-size:11px;color:var(--muted);font-weight:500;">▶ 펼치기</span></div>
       <div id="occDetail" class="hidden">
-        <p class="sub" style="margin:8px 0 8px;">각 키워드 1페이지에서 누가 어떤 형태로 노출되는지. ■칸이 채워질수록 그 키워드를 장악.</p>
+        <p class="sub" style="margin:8px 0 8px;">키워드별로 어느 병원이 어떤 채널(플레이스·블로그·웹)에 노출되는지입니다. <b>칸이 많이 채워진 병원일수록</b> 그 검색어를 폭넓게 차지하고 있습니다.</p>
         <div class="legend2">
           <span><i class="od" style="background:var(--place)"></i>플레이스</span>
           <span><i class="od" style="background:var(--blog)"></i>블로그</span>
@@ -355,14 +355,14 @@
 
     <div class="sheet-block">
       <div class="sheet-h">채널 현황 — 경쟁사가 실제로 무엇을 하고 있나 <span class="find-pill">직접 입력</span></div>
-      <p class="sub" style="margin:0 0 8px;">플레이스 상세에서 보유 채널을 체크하고 숫자를 넣은 뒤, 오른쪽에 브랜드 관점의 해석을 적습니다. "확인"을 누르면 원장님께 보여줄 카드로 정리됩니다. <b>빈 채널은 결과에 안 나옵니다.</b></p>
+      <p class="sub" style="margin:0 0 8px;">경쟁사 플레이스에서 <b>운영 중인 채널을 체크</b>하고 수치를 넣은 뒤, 오른쪽에 브랜드 관점의 해석을 한 줄 적으세요. <b>빈 채널은 결과에 표시되지 않습니다.</b></p>
       <div id="findBoxes" style="display:flex; flex-direction:column;"></div>
     </div>
 
     <div class="sheet-block">
       <div class="verdict">
         <h3>📋 진단 &amp; 제안</h3>
-        <textarea id="verdictText" placeholder="자동 초안이 채워집니다. 미팅 직전 본인 언어로 다듬으세요."></textarea>
+        <textarea id="verdictText" placeholder="자동 초안이 채워집니다. 미팅 직전 원장님께 전할 말로 다듬으세요."></textarea>
       </div>
     </div>
 
